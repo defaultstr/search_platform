@@ -11,3 +11,10 @@ except ImportError:
     import json
 
 
+class TaskList(Document):
+    user = ReferenceField(User)
+    urls = ListField(StringField())
+    url_params = ListField(StringField())
+    names = ListField(StringField())
+    # 0 for un-opened, 1 for pending, 2 for finished
+    states = ListField(IntField())

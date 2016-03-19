@@ -40,6 +40,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'user_system',
     'task_manager',
+    'exp_domain_expertise',
 )
 
 MIDDLEWARE_CLASSES = (
