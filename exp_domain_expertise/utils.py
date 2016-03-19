@@ -27,3 +27,20 @@ def get_task_by_id(task_id):
         return None
 
 
+def get_url(task_id):
+    url = '/%s/%s/' % (task_url, task_id)
+    print url
+    return url
+
+
+def concat_url(url, compoent):
+    return '%s%s/' % (url, compoent)
+
+
+def get_next_step(cur_step):
+    idx = task_steps.index(cur_step)
+    # if all steps have been finished
+    if idx == len(task_steps) - 1:
+        return None
+    else:
+        return task_steps[idx+1]

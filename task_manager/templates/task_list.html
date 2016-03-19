@@ -32,17 +32,17 @@
                         <!-- task button -->
                         {% if task.state == 0 %}
                         <a class="btn btn-block btn-lg btn-primary"
-                           href="{{ task.url }}">
+                           href="{{ task.url }}start/">
                             开始
                         </a>
                         {% elif task.state == 1 %}
                         <a class="btn btn-block btn-lg btn-primary"
-                           href="{{ task.url }}">
+                           href="{{ task.url }}continue/">
                             继续
                         </a>
                         {% else %}
-                        <a class="btn btn-block btn-lg btn-primary btn-disable"
-                           href="{{ task.url }}">
+                        <a class="btn btn-block btn-lg btn-primary disabled"
+                           href="{{ task.url }}continue/">
                             已完成
                         </a>
                         {% endif %}
