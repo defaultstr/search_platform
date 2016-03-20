@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %} 任务描述 {% endblock %}
+{% block content %}
+    <div class="row text-center">
+        <h3>
+            任务描述
+        </h3>
+    </div>
+    <div class="row">
+    <div class="col-xs-offset-2 col-xs-8 user_info">
+        <div class="row">
+            <p>
+                <b>请阅读并记忆以下搜索任务描述：</b>
+            </p>
+            <p>
+                {{ task_description }}
+            </p>
+        </div>
+        <div class="row">
+            <div class="col-xs-offset-4 col-xs-4">
+                    <a class="btn btn-block btn-lg btn-primary"
+                       href="{{ task_url }}next_step/">
+                       下一步
+                    </a>
+            </div>
+        </div>
+    </div>
+    </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        $(window).bind('beforeunload', function() {
+            return '你确定要离开该页面吗？';
+        });
+    </script>
+{% endblock %}

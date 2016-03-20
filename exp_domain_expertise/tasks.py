@@ -9,6 +9,7 @@ task_steps = [
     'description',
     'pre_task_question',
     'search',
+    'question_answer',
     'query_satisfaction',
     'post_task_question',
 ]
@@ -35,6 +36,6 @@ tasks = [
     Task(
         task_id='1',
         name=u'任务1',
-        description=u'任务1',
+        description=u'问：请问我国颗粒物污染特征有哪些？请从全国、地区层面，时间变化层面、颗粒物组成层面等角度进行分析。',
     ),
 ]

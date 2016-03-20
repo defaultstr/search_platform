@@ -12,6 +12,7 @@ urlpatterns = [
     url(r'^(\d+)/pre_task_question/$', views.pre_task_question),
     url(r'^(\d+)/search/$', views.search),
     url(r'^(\d+)/search/(.*?)/(\d{1,2})/$', views.search),
+    url(r'^(\d+)/question_answer/$', views.question_answer),
     url(r'^(\d+)/query_satisfaction/$', views.query_satisfaction),
     url(r'^(\d+)/post_task_question/$', views.post_task_question),
 ]

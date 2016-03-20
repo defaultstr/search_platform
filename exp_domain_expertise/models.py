@@ -10,3 +10,14 @@ class TaskState(Document):
     url = StringField()
     current_step = StringField()
 
+
+class PreTaskQuestionLog(Document):
+    user = ReferenceField(User)
+    task = StringField()
+    task_id = StringField()
+    task_url = StringField()
+    input_description = StringField()
+    knowledge_scale = IntField()
+    interest_scale = IntField()
+    difficulty_scale = IntField()
+

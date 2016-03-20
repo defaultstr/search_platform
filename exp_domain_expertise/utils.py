@@ -4,6 +4,7 @@ __author__ = 'defaultstr'
 
 from tasks import *
 from random import shuffle
+from .models import *
 
 
 def get_task_list():
@@ -29,7 +30,6 @@ def get_task_by_id(task_id):
 
 def get_url(task_id):
     url = '/%s/%s/' % (task_url, task_id)
-    print url
     return url
 
 
@@ -44,3 +44,4 @@ def get_next_step(cur_step):
         return None
     else:
         return task_steps[idx+1]
+
