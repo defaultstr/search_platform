@@ -21,3 +21,15 @@ class PreTaskQuestionLog(Document):
     interest_scale = IntField()
     difficulty_scale = IntField()
 
+
+class PostTaskQuestionLog(Document):
+    user = ReferenceField(User)
+    task = StringField()
+    task_id = StringField()
+    task_url = StringField()
+    question_answer = StringField()
+    knowledge_scale = IntField()
+    interest_scale = IntField()
+    difficulty_scale = IntField()
+    satisfaction_scale = IntField()
+

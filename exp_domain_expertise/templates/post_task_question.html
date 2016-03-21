@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+{% block title %} 任务后问卷 {% endblock %}
+{% block content %}
+    <div class="row">
+    <div class="col-xs-offset-1 col-xs-10 user_info">
+        <form id="pre_task_question_form" name="pre_task_question_form" action="" method="POST">
+            {% csrf_token %}
+            <!-- task description -->
+            <div class="row">
+                <b>任务描述：</b>
+            </div>
+            <div class="row">
+                <div class="col-xs-offset-1 col-xs-10">
+                    {{ task_description }}
+                </div>
+            </div>
+
+            <!-- answer question -->
+            <div class="row">
+                <b>1.请回答上述问题：</b>
+            </div>
+            <div class="row">
+                <div class="col-xs-offset-1 col-xs-10">
+                    <textarea name="question_answer" rows="5" class="form-control"> </textarea>
+                </div>
+            </div>
+
+            <!-- knowledge -->
+            <div class="row">
+                <b>2.经过搜索，你对该搜索任务的了解增进了多少？</b>
+            </div>
+            <div class="row">
+                <div class="col-xs-offset-1 col-xs-2">
+                    <input type="radio" name="knowledge_scale" id="knowledge_1" value="1"
+                           data-toggle="radio" class="custom-radio">
+                    <small>完全不了解</small>
+                </div>
+                <div class="col-xs-2">
+                    <input type="radio" name="knowledge_scale" id="knowledge_2" value="2"
+                           data-toggle="radio" class="custom-radio">
+                    <small>有些微了解</small>
+                </div>
+                <div class="col-xs-2">
+                    <input type="radio" name="knowledge_scale" id="knowledge_3" value="3"
+                           data-toggle="radio" class="custom-radio">
+                    <small>有点了解</small>
+                </div>
+                <div class="col-xs-2">
+                    <input type="radio" name="knowledge_scale" id="knowledge_4" value="4"
+                           data-toggle="radio" class="custom-radio">
+                    <small>比较了解</small>
+                </div>
+                <div class="col-xs-2">
+                    <input type="radio" name="knowledge_scale" id="knowledge_5" value="5"
+                           data-toggle="radio" class="custom-radio">
+                    <small>非常了解</small>
+                </div>
+            </div>
+
+            <!-- interest -->
+            <div class="row">
+                <b>3.经过搜索，你对该搜索任务的兴趣增进了多少？</b>
+            </div>
+            <div class="row">
+                <div class="col-xs-offset-1 col-xs-2">
+                    <input type="radio" name="interest_scale" id="interest_1" value="1"
+                           data-toggle="radio" class="custom-radio">
+                    <small>完全没兴趣</small>
+                </div>
+                <div class="col-xs-2">
+                    <input type="radio" name="interest_scale" id="interest_2" value="2"
+                           data-toggle="radio" class="custom-radio">
+                    <small>有些微兴趣</small>
+                </div>
+                <div class="col-xs-2">
+                    <input type="radio" name="interest_scale" id="interest_3" value="3"
+                           data-toggle="radio" class="custom-radio">
+                    <small>有点兴趣</small>
+                </div>
+                <div class="col-xs-2">
+                    <input type="radio" name="interest_scale" id="interest_4" value="4"
+                           data-toggle="radio" class="custom-radio">
+                    <small>比较有兴趣</small>
+                </div>
+                <div class="col-xs-2">
+                    <input type="radio" name="interest_scale" id="interest_5" value="5"
+                           data-toggle="radio" class="custom-radio">
+                    <small>非常有兴趣</small>
+                </div>
+            </div>
+
+            <!-- difficulty -->
+            <div class="row">
+                <b>4.经过搜索，你认为该搜索任务是否困难？</b>
+            </div>
+            <div class="row">
+                <div class="col-xs-offset-1 col-xs-2">
+                    <input type="radio" name="difficulty_scale" id="difficulty_1" value="1"
+                           data-toggle="radio" class="custom-radio">
+                    <small>完全没困哪</small>
+                </div>
+                <div class="col-xs-2">
+                    <input type="radio" name="difficulty_scale" id="difficulty_2" value="2"
+                           data-toggle="radio" class="custom-radio">
+                    <small>有些微困哪</small>
+                </div>
+                <div class="col-xs-2">
+                    <input type="radio" name="difficulty_scale" id="difficulty_3" value="3"
+                           data-toggle="radio" class="custom-radio">
+                    <small>有点困哪</small>
+                </div>
+                <div class="col-xs-2">
+                    <input type="radio" name="difficulty_scale" id="difficulty_4" value="4"
+                           data-toggle="radio" class="custom-radio">
+                    <small>比较有困哪</small>
+                </div>
+                <div class="col-xs-2">
+                    <input type="radio" name="difficulty_scale" id="difficulty_5" value="5"
+                           data-toggle="radio" class="custom-radio">
+                    <small>非常有困哪</small>
+                </div>
+            </div>
+
+            <!-- satisfaction -->
+            <div class="row">
+                <b>5.对于整个搜索过程，你是否感到满意？</b>
+            </div>
+            <div class="row">
+                <div class="col-xs-offset-1 col-xs-2">
+                    <input type="radio" name="satisfaction_scale" id="satisfaction_1" value="1"
+                           data-toggle="radio" class="custom-radio">
+                    <small>完全不满意</small>
+                </div>
+                <div class="col-xs-2">
+                    <input type="radio" name="satisfaction_scale" id="satisfaction_2" value="2"
+                           data-toggle="radio" class="custom-radio">
+                    <small>有些微满意</small>
+                </div>
+                <div class="col-xs-2">
+                    <input type="radio" name="satisfaction_scale" id="satisfaction_3" value="3"
+                           data-toggle="radio" class="custom-radio">
+                    <small>有点满意</small>
+                </div>
+                <div class="col-xs-2">
+                    <input type="radio" name="satisfaction_scale" id="satisfaction_4" value="4"
+                           data-toggle="radio" class="custom-radio">
+                    <small>比较满意</small>
+                </div>
+                <div class="col-xs-2">
+                    <input type="radio" name="satisfaction_scale" id="satisfaction_5" value="5"
+                           data-toggle="radio" class="custom-radio">
+                    <small>非常满意</small>
+                </div>
+            </div>
+
+
+            {% if error_message %}
+            <div class="login_error_message">
+                {{ error_message }}
+            </div>
+            {% endif %}
+
+
+
+            <div class="row">
+                <div class="col-xs-offset-4 col-xs-4">
+                        <button class="btn btn-block btn-lg btn-primary" type="submit">
+                           提交
+                        </button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+    </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        $(window).bind('beforeunload', function() {
+            return '';
+        });
+    </script>
+{% endblock %}

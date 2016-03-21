@@ -10,3 +10,11 @@ class PreTaskQuestionForm(forms.Form):
     knowledge_scale = forms.IntegerField(required=True, min_value=1, max_value=5)
     interest_scale = forms.IntegerField(required=True, min_value=1, max_value=5)
     difficulty_scale = forms.IntegerField(required=True, min_value=1, max_value=5)
+
+
+class PostTaskQuestionForm(forms.Form):
+    question_answer = forms.CharField(required=True, min_length=1)
+    knowledge_scale = forms.IntegerField(required=True, min_value=1, max_value=5)
+    interest_scale = forms.IntegerField(required=True, min_value=1, max_value=5)
+    difficulty_scale = forms.IntegerField(required=True, min_value=1, max_value=5)
+    satisfaction_scale = forms.IntegerField(required=True, min_value=1, max_value=5)

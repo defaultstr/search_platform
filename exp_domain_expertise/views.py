@@ -124,18 +124,14 @@ def pre_task_question(user, request, task_id):
 @require_login
 def search(user, request, task_id, query=None, page=None):
     url = utils.get_url(task_id)
-    return render_to_response(
-        'exp_test.html',
-        {
-            'cur_user': user,
-            'task_url': url,
-        },
-        RequestContext(request),
-    )
+    task = utils.get_task_by_id(task_id)
+    try:
+        task_state = TaskState.objects.get(user=user, url=url)
+        task_state.current_step = 'search'
+        task_state.save()
+    except DoesNotExist:
+        return HttpResponseRedirect(utils.concat_url(url, 'start'))
 
-
-@require_login
-def question_answer(user, request, task_id):
     url = utils.get_url(task_id)
     return render_to_response(
         'exp_test.html',
@@ -150,6 +146,14 @@ def question_answer(user, request, task_id):
 @require_login
 def query_satisfaction(user, request, task_id):
     url = utils.get_url(task_id)
+    task = utils.get_task_by_id(task_id)
+    try:
+        task_state = TaskState.objects.get(user=user, url=url)
+        task_state.current_step = 'query_satisfaction'
+        task_state.save()
+    except DoesNotExist:
+        return HttpResponseRedirect(utils.concat_url(url, 'start'))
+
     return render_to_response(
         'exp_test.html',
         {
@@ -163,14 +167,45 @@ def query_satisfaction(user, request, task_id):
 @require_login
 def post_task_question(user, request, task_id):
     url = utils.get_url(task_id)
+    task = utils.get_task_by_id(task_id)
+    try:
+        task_state = TaskState.objects.get(user=user, url=url)
+        task_state.current_step = 'post_task_question'
+        task_state.save()
+    except DoesNotExist:
+        return HttpResponseRedirect(utils.concat_url(url, 'start'))
+
+    error_message = None
+    if request.method == 'POST':
+        form = PostTaskQuestionForm(request.POST)
+        if form.is_valid():
+            print 'Post-task questionnaire:'
+            print 'User: %s, Task: %s, Task ID: %s' % (user.username, url, task_id)
+            print form.cleaned_data
+            log = PostTaskQuestionLog()
+            log.user = user
+            log.task = tasks.task_url
+            log.task_url = url
+            log.task_id = task_id
+            log.question_answer = form.cleaned_data['question_answer']
+            log.knowledge_scale = form.cleaned_data['knowledge_scale']
+            log.interest_scale = form.cleaned_data['interest_scale']
+            log.difficulty_scale = form.cleaned_data['difficulty_scale']
+            log.satisfaction_scale = form.cleaned_data['satisfaction_scale']
+            log.save()
+            return HttpResponseRedirect(utils.concat_url(url, 'query_satisfaction'))
+        else:
+            error_message = form.errors
+
     return render_to_response(
-        'exp_test.html',
+        'post_task_question.html',
         {
             'cur_user': user,
             'task_url': url,
+            'task_description': task.description,
+            'error_message': error_message,
         },
         RequestContext(request),
     )
-
 
 
