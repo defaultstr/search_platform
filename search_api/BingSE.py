@@ -19,7 +19,7 @@ def BingSE(query):
     fr.close()
     para = dict()
     para['q'] = query
-    para['count'] = 30
+    para['count'] = 50 
     url = 'http://www.bing.com/search?' + urllib.urlencode(para)
     try:
         txt = urllib2.urlopen(url).read()
