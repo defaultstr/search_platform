@@ -134,7 +134,7 @@ def search(user, request, task_id, query=None, page=None):
 
     url = utils.get_url(task_id)
     return render_to_response(
-        'exp_test.html',
+        'search.html',
         {
             'cur_user': user,
             'task_url': url,

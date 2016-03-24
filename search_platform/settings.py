@@ -40,6 +40,7 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'user_system',
     'task_manager',
+    'search_api',
     'exp_domain_expertise',
 )
 

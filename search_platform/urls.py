@@ -13,6 +13,7 @@ urlpatterns = [
     url(r'^admin/', include(admin.site.urls)),
     url(r'^user/', include('user_system.urls')),
     url(r'^task/', include('task_manager.urls')),
+    url(r'^search_api/', include('search_api.urls')),
     url(r'^exp_domain_expertise/', include('exp_domain_expertise.urls')),
     url(r'^$', views.index),
 ]

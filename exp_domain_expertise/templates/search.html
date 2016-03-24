@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %} 搜索 {% endblock %}
+{% block css %}
+    <style>
+        .search-form {
+            margin-top: 100px;
+        }
+
+        .top-buffer {
+            margin-top: 10px;
+        }
+    </style>
+
+{% endblock %}
+{% block content %}
+    <!-- search form -->
+    <div class="row search-form">
+        <form id="search_form" name="search_form" method="get" target="_blank">
+            <input type="hidden" name="task_url" value="{{ task_url }}">
+
+            <div class="row">
+                <div class="col-xs-offset-2 col-xs-8">
+                    <input type="text" name="query" class="form-control">
+                </div>
+            </div>
+
+            <div class="row top-buffer">
+                <div class="col-xs-offset-3 col-xs-2">
+                    <button class="col-xs-3 btn btn-block btn-lg btn-primary search-btn" type="submit"
+                            formaction="/search_api/bing/">
+                        bing搜索
+                    </button>
+                </div>
+                <div class="col-xs-2">
+                    <button class="col-xs-3 btn btn-block btn-lg btn-primary search-btn" type="submit"
+                            formaction="/search_api/zhihu/">
+                        知乎搜索
+                    </button>
+                </div>
+                <div class="col-xs-2">
+                    <button class="col-xs-3 btn btn-block btn-lg btn-primary search-btn" type="submit"
+                            formaction="/search_api/baidu_zhidao/">
+                        百度知道搜索
+                    </button>
+                </div>
+            </div>
+
+
+        </form>
+        <script>
+            function add_time_stamp(form) {
+                var timestamp_input = document.createElement('input');
+                timestamp_input.type = 'hidden';
+                timestamp_input.name = 'timestamp';
+                timestamp_input.value = (new Date()).getTime();
+                form.appendChild(timestamp_input);
+            }
+
+            (function() {
+                $('.search-btn').click(function(e) {
+                    e.preventDefault();
+                    var button = e.target;
+                    var form = document.search_form;
+                    add_time_stamp(form);
+                    form.action = button.formAction;
+                    form.submit();
+                });
+            })();
+        </script>
+    </div>
+    <!-- end of search form -->
+{% endblock %}
+
+{% block scripts %}
+{% endblock %}

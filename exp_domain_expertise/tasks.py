@@ -10,7 +10,6 @@ task_steps = [
     'pre_task_question',
     'search',
     'post_task_question',
-    'query_satisfaction',
 ]
 
 
