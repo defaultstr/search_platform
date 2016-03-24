@@ -27,5 +27,16 @@ class BingResults(Document):
     results = ListField(EmbeddedDocumentField(BingResult))
 
 
+class BaiduCQAResult(EmbeddedDocument):
+    title = StringField()
+    url = StringField()
+    snippet = StringField()
+    html_content = StringField()
+
+
+class BaiduCQAResults(Document):
+    query = StringField()
+    results = ListField(EmbeddedDocumentField(BaiduCQAResult))
+
 
 

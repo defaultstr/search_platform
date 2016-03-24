@@ -77,5 +77,55 @@ def bing_search(user, request):
     )
 
 
+@require_login
+def baidu_cqa_search(user, request):
+    # read parameters
+    query = request.GET.get('query', '')
+    task_url = request.GET.get('task_url', '')
+    timestamp = int(request.GET.get('timestamp', '1'))
+
+    results_html = ''
+    show_pagination = False
+    # if query is empty, just return a search form
+    if query != '':
+        # check if the query has been issued
+        results = None
+        try:
+            results = BaiduCQAResults.objects.get(query=query)
+        except DoesNotExist:
+            # if it has not, crawl results using search api
+            results = utils.crawl_baidu_cqa(query)
+
+        start_at = 0
+        end_at = min(len(results.results), start_at + 10)
+
+        # make serp
+        for idx in range(start_at, end_at):
+            results_html += results.results[idx].html_content
+
+        # log query
+        log = QueryLog(
+            user=user,
+            task_url=task_url,
+            query=query,
+            search_engine='baidu_cqa',
+            page=1,
+            timestamp=timestamp,
+        )
+        log.save()
+
+    return render_to_response(
+        'baidu_cqa_serp.html',
+        {
+            'cur_user': user,
+            'query': query,
+            'task_url': task_url,
+            'results_html': results_html,
+        },
+        RequestContext(request),
+    )
+
+
+
 
 

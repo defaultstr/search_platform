@@ -1,0 +1,238 @@
+﻿
+<!DOCTYPE html>
+<!--STATUS OK-->
+<html>
+	<head>
+		<meta http-equiv="X-UA-Compatible" content="IE=9" />
+		<meta http-equiv="content-type" content="text/html;charset=gbk" />
+		<meta property="wb:webmaster" content="3aababe5ed22e23c" />
+		<title>
+百度知道搜索_{{ query }}
+</title>
+
+
+      			
+<script>
+
+</script>
+
+		        
+<link rel="canonical" href="http://zhidao.baidu.com/search?word=%B5%E7%B7%E7%C9%C8&ie=gbk" />
+
+
+	<link rel="stylesheet" type="text/css" href="http://iknowpc.bdimg.com/static/common/pkg/common_9794ea6.css" /><link rel="stylesheet" type="text/css" href="http://iknowpc.bdimg.com/static/search/pkg/module_23d1602.css" />
+
+    <!-- our head -->
+    <link rel="icon" href="/static/img/IR4.png" type="image/png"/>
+
+    <!-- Loading Bootstrap -->
+    <link href="/static/flat-ui/css/vendor/bootstrap.min.css" rel="stylesheet">
+    <!-- Loading Flat UI -->
+
+    <!-- Loading Jquery -->
+    <script src="/static/flat-ui/js/vendor/jquery.min.js"></script>
+    <!-- customized style -->
+        <style>
+            .search-form {
+                padding: 20px;
+                background: #eeeeee;
+            }
+
+            .top-buffer {
+                margin-top: 20px;
+            }
+
+            .btn-text {
+                background-color: transparent;
+                box-shadow: none;
+                border-color: transparent;
+                cursor: default;
+            }
+
+        </style>
+    <!-- end of customized style -->
+    <!-- end of our head -->
+
+    </head>
+    
+    
+    <script> alog('speed.set', 'ht', +new Date); </script>
+
+
+	<body class="newsearch">
+		
+            
+
+
+
+		
+        
+		
+    <!-- search form -->
+    <div class="row search-form">
+        <form id="search_form" name="search_form" method="get">
+            <input type="hidden" name="task_url" value="{{ task_url }}">
+
+            <div class="col-xs-offset-1 col-xs-5">
+                <input type="text" id="query_input" name="query" value="{{ query }}" class="form-control">
+            </div>
+
+            <div class="col-xs-2">
+                <button class="col-xs-3 btn btn-block btn-primary search-btn" type="submit">
+                    <small>
+                        百度知道搜索
+                    </small>
+                </button>
+            </div>
+
+            <div class="col-xs-2">
+                <button class="col-xs-3 btn btn-block btn-success success-btn">
+                    <small>
+                        搜索完成
+                    </small>
+                </button>
+            </div>
+
+
+        </form>
+        <script>
+            function add_time_stamp(form) {
+                var timestamp_input = document.createElement('input');
+                timestamp_input.type = 'hidden';
+                timestamp_input.name = 'timestamp';
+                timestamp_input.value = (new Date()).getTime();
+                form.appendChild(timestamp_input);
+            }
+
+            (function() {
+                $('.search-btn').click(function(e) {
+                    e.preventDefault();
+                    var form = document.search_form;
+                    add_time_stamp(form);
+
+                    var button = e.target;
+                    form.action = "/search_api/baidu_cqa/"
+                    form.submit();
+                });
+            })();
+
+            (function() {
+               $('.success-btn').click(function(e) {
+                   e.preventDefault();
+                   window.location = "{{ task_url }}post_task_question/"
+               })
+            })();
+        </script>
+    </div>
+    <!-- end of search form -->
+
+
+    
+    <div id="body" class="container">
+        
+<section id="page-main" class="page-main line">
+<div class="page-main-inner">
+
+
+<div class="line">
+<div class="list-wraper">
+<div class="list-inner">
+
+
+<div class="list" id="wgt-list" data-log-area="list">
+    <!-- results -->
+    {% autoescape off %}
+        {{ results_html }}
+    {% endautoescape %}
+    <!-- end of results -->
+
+</div>
+
+
+
+
+</div>
+</div>
+</div>
+</div>
+</section>
+
+
+    </div>
+
+
+		
+
+		
+
+	    
+
+        
+        
+
+
+        
+                    
+
+        
+
+	</body>
+    <script type="text/javascript" src="http://iknowpc.bdimg.com/static/common/lib/mod_96dd55b.js"></script><script type="text/javascript">require.resourceMap({"res":{"common:widget\/lib\/swfupload\/swfupload.js":{"url":"http:\/\/iknowpc.bdimg.com\/static\/common\/widget\/lib\/swfupload\/swfupload_b24a26d.js"},"search:widget\/js\/file\/file.js":{"url":"http:\/\/iknowpc.bdimg.com\/static\/search\/widget\/js\/file\/file_08680c5.js","deps":["common:widget\/js\/util\/tangram\/tangram.js","common:widget\/js\/util\/suffix-str\/suffix-str.js","common:widget\/js\/util\/log\/log.js","common:widget\/js\/util\/event\/event.js","common:widget\/js\/logic\/login\/login.js","common:widget\/js\/ui\/dialog\/dialog.js","common:widget\/js\/logic\/submit\/submit.js","common:widget\/js\/util\/template\/template.js"]}},"pkg":[]});</script><script type="text/javascript" src="http://iknowpc.bdimg.com/static/common/pkg/framework_af469f5.js"></script><script type="text/javascript" src="http://iknowpc.bdimg.com/static/common/pkg/more_744d20f.js"></script><script type="text/javascript" src="http://iknowpc.bdimg.com/static/common/widget/js/logic/qianbao-iframe/qianbao-dialog_a3c13c6.js"></script><script type="text/javascript" src="http://iknowpc.bdimg.com/static/common/pkg/validate_d964132.js"></script><script type="text/javascript" src="http://iknowpc.bdimg.com/static/common/pkg/module_be5f00f.js"></script><script type="text/javascript" src="http://iknowpc.bdimg.com/static/search/pkg/module_fd92b7a.js"></script><script type="text/javascript">
+!function(){    require.async('common:widget/userbar-new/userbar-new.js');
+}();
+!function(){    require.async('common:widget/js/logic/search-box/search-box.js');
+}();
+!function(){      F.context('samplingAll', {"search_50per":["1"],"search_20per":["2"],"search_10per":["4"],"search_5per":["7"]});
+  }();
+!function(){  require.async('search:widget/results/picker/picker.js', function(P){P.init();});
+}();
+!function(){    require.async('search:widget/baike/baike.js');
+}();
+!function(){  require.async('search:widget/results/list/list.js');
+}();
+!function(){    require.async('search:widget/bottom-search-box/bottom-search-box.js');
+}();
+!function(){    require('common:widget/js/logic/ie-prompt/ie-prompt.js');
+}();
+!function(){    require.async('search:widget/js/dom-ready/dom-ready.js', function(D){
+      // 检索结果页接入dp平台domready打点
+      alog('speed.set', 'drt', +new Date);
+
+      D.init({"logConfig":{"ssid":"2675205680","pn":"0","wd":"\u7535\u98ce\u6247","tc":"108","nsma":"1","nsma_show":"1","asp_new_graphic_ad":"nonw"},"tcConfig":{"swf":{"open":"0"}}});
+    });
+	}();
+!function(){	require.async('common:widget/bottom-ask/bottom-ask.js');
+}();
+!function(){								                				require.async('common:widget/js/logic/dom-ready/dom-ready.js', function(D){ D.init([]) });
+            }();
+</script>
+<script type="text/javascript">
+    require.async('common:widget/lib/jquery/jquery.js', function ($) {
+        //  var ie = /msie (\d+\.\d+)/i.test(navigator.userAgent) ? (document.documentMode || +RegExp['$1']) : undefined;
+        if (!/chrome|firefox|safari|msie 10|rsv:11|msie [89]/i.test(navigator.userAgent)) {
+            return;
+        }
+
+        window.BaiduHttps = window.BaiduHttps || {};
+        window.BaiduHttps.callbacks = function (data) {
+            if (data && data.s === 0) {
+                window.supportHttps = 1;
+                setTimeout(function () {
+                    $('a[href^="http://www.baidu.com/s?"]').each(function (index, item) {
+                        var link = $(item).attr('href');
+                        if (~link.indexOf('?wd=') || ~link.indexOf('&wd=')) {
+                            link = link.replace(/^http/, 'https');
+                            $(item).attr('href', link);
+                        }
+                    });
+                }, 2000);
+            }
+        };
+
+        var script = document.createElement('script');
+        script.type = 'text/javascript';
+        script.src = 'https://www.baidu.com/con?from=zhidao';
+        document.body.appendChild(script);
+    });
+</script>
+</html>

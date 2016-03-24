@@ -106,7 +106,13 @@ def pre_task_question(user, request, task_id):
             log.interest_scale = form.cleaned_data['interest_scale']
             log.difficulty_scale = form.cleaned_data['difficulty_scale']
             log.save()
-            return HttpResponseRedirect(utils.concat_url(url, 'search'))
+
+            next_step = utils.get_next_step(task_state.current_step)
+            if next_step is None:
+                task_utils.end_task(user, url)
+                return HttpResponseRedirect('/task/home/')
+            else:
+                return HttpResponseRedirect(utils.concat_url(url, next_step))
         else:
             error_message = form.errors
 
@@ -193,7 +199,13 @@ def post_task_question(user, request, task_id):
             log.difficulty_scale = form.cleaned_data['difficulty_scale']
             log.satisfaction_scale = form.cleaned_data['satisfaction_scale']
             log.save()
-            return HttpResponseRedirect(utils.concat_url(url, 'query_satisfaction'))
+
+            next_step = utils.get_next_step(task_state.current_step)
+            if next_step is None:
+                task_utils.end_task(user, url)
+                return HttpResponseRedirect('/task/home/')
+            else:
+                return HttpResponseRedirect(utils.concat_url(url, next_step))
         else:
             error_message = form.errors
 

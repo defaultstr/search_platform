@@ -65,12 +65,11 @@ _G.BCT=new Date;
             </div>
 
             <div class="col-xs-2">
-                <a class="col-xs-3 btn btn-block btn-success"
-                        href="{{ task_url }}post_task_question/">
+                <button class="col-xs-3 btn btn-block btn-success success-btn">
                     <small>
                         搜索完成
                     </small>
-                </a>
+                </button>
             </div>
 
 
@@ -94,6 +93,13 @@ _G.BCT=new Date;
                     form.action = "/search_api/bing/"
                     form.submit();
                 });
+            })();
+
+            (function() {
+               $('.success-btn').click(function(e) {
+                   e.preventDefault();
+                   window.location = "{{ task_url }}post_task_question/"
+               })
             })();
         </script>
     </div>

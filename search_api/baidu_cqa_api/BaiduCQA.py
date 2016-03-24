@@ -8,7 +8,9 @@ import json
 rc_url = re.compile(r'(?<=href=").+?(?=")')
 rc_snippet = re.compile(r'(?<=<dd class="dd answer"><i class="i-answer-text">).+?(?=</dd>)')
 
+
 def BaiduCQA(query):
+    '''
     fr = file('Baidu.txt')
     for line in fr.readlines():
         l = line.strip().split('\t')
@@ -16,6 +18,7 @@ def BaiduCQA(query):
             fr.close()
             return l[1]
     fr.close()
+    '''
     para = dict()
     para['word'] = query
     url = 'http://zhidao.baidu.com/search?' + urllib.urlencode(para)
@@ -44,9 +47,11 @@ def BaiduCQA(query):
             d['html'] = l[i]
             serp.append(d)
         res = json.dumps(serp)
+        '''
         fw = file('Baidu.txt', 'a')
         fw.write(query + '\t' + res + '\n')
         fw.close()
+        '''
         return res
 
 if __name__ == '__main__':

@@ -8,5 +8,6 @@ from . import views
 
 urlpatterns = [
     url(r'^bing/$', views.bing_search),
+    url(r'^baidu_cqa/$', views.baidu_cqa_search),
 ]
 
