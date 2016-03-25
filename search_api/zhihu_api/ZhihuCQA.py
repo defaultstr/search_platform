@@ -10,6 +10,7 @@ rc_title = re.compile(r'(?<=target="_blank">).+?(?=</a>)')
 rc_snippet = re.compile(r'(?<=<div class="summary hidden-expanded">).+?(?=</div>)')
 
 def ZhihuCQA(query):
+    '''
     fr = file('Zhihu.txt')
     for line in fr.readlines():
         l = line.strip().split('\t')
@@ -17,6 +18,7 @@ def ZhihuCQA(query):
             fr.close()
             return l[1]
     fr.close()
+    '''
     para = dict()
     para['q'] = query
     url = 'https://www.zhihu.com/search?' + urllib.urlencode(para)
@@ -40,13 +42,19 @@ def ZhihuCQA(query):
                 result = result.replace(str(r), '')
             d['url'] = rc_url.search(result).group()
             d['title'] = rc_title.search(result).group()
-            d['snippet'] = rc_snippet.search(result).group()
+            match = rc_snippet.search(result)
+            if match:
+                d['snippet'] = rc_snippet.search(result).group()
+            else:
+                d['snippet'] = ''
             d['html'] = result
             serp.append(d)
         res = json.dumps(serp)
+        '''
         fw = file('Zhihu.txt', 'a')
         fw.write(query + '\t' + res + '\n')
         fw.close()
+        '''
         return res
 
 if __name__ == '__main__':

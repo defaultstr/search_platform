@@ -4,6 +4,7 @@ __author__ = 'defaultstr'
 
 from .bing_api import BingSE
 from .baidu_cqa_api import BaiduCQA
+from .zhihu_api import ZhihuCQA
 from .models import *
 import json
 
@@ -33,5 +34,9 @@ def crawl_bing(query):
 
 def crawl_baidu_cqa(query):
     return _crawl(query, BaiduCQA.BaiduCQA, BaiduCQAResult, BaiduCQAResults)
+
+
+def crawl_zhihu(query):
+    return _crawl(query, ZhihuCQA.ZhihuCQA, ZhihuResult, ZhihuResults)
 
 
