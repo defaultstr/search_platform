@@ -39,4 +39,16 @@ class BaiduCQAResults(Document):
     results = ListField(EmbeddedDocumentField(BaiduCQAResult))
 
 
+class ZhihuResult(EmbeddedDocument):
+    title = StringField()
+    url = StringField()
+    snippet = StringField()
+    html_content = StringField()
+
+
+class ZhihuResults(Document):
+    query = StringField()
+    results = ListField(EmbeddedDocumentField(ZhihuResult))
+
+
 
