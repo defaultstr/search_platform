@@ -5,7 +5,105 @@
         <meta charset="UTF-8">
         <title>{{ query }} - 搜索结果 - 知乎</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-        <link rel="stylesheet" href="https://static.zhihu.com/static/revved/-/css/z.ae9dd79a.css"><!--[if lt IE 9]><script src="https://static.zhihu.com/static/components/respond/dest/respond.min.js"></script><link href="https://static.zhihu.com/static/components/respond/cross-domain/respond-proxy.html" id="respond-proxy" rel="respond-proxy" /><link href="/static/components/respond/cross-domain/respond.proxy.gif" id="respond-redirect" rel="respond-redirect" /><script src="/static/components/respond/cross-domain/respond.proxy.js"></script><![endif]--></head><body class="zhi page-search"><div class="zu-global-notify" id="zh-global-message" style="display:none"><div class="zg-wrap"><div class="zu-global-nitify-inner"><a class="zu-global-notify-close" href="javascript:;" title="关闭" name="close">x</a><span class="zu-global-notify-icon"></span><span class="zu-global-notify-msg"></span></div></div></div><div class="zg-wrap zu-main clearfix"><div class="zu-main-content"><div class="zu-main-content-inner"><ul class="list contents" data-paging="{&quot;next&quot;: &quot;/r/search?q=%E7%94%B5%E9%A3%8E%E6%89%87&amp;type=content&amp;offset=10&quot;}" data-navigable="{&quot;items&quot;: &quot;&gt;.item .answer-item, &gt;.item.article-item&quot;}">
+        <link rel="stylesheet" href="https://static.zhihu.com/static/revved/-/css/z.ae9dd79a.css"><!--[if lt IE 9]><script src="https://static.zhihu.com/static/components/respond/dest/respond.min.js"></script><link href="https://static.zhihu.com/static/components/respond/cross-domain/respond-proxy.html" id="respond-proxy" rel="respond-proxy" /><link href="/static/components/respond/cross-domain/respond.proxy.gif" id="respond-redirect" rel="respond-redirect" /><script src="/static/components/respond/cross-domain/respond.proxy.js"></script><![endif]-->
+            <!-- our head -->
+        <link rel="icon" href="/static/img/IR4.png" type="image/png"/>
+
+        <!-- Loading Bootstrap -->
+        <link href="/static/flat-ui/css/vendor/bootstrap.min.css" rel="stylesheet">
+        <!-- Loading Flat UI -->
+
+        <!-- Loading Jquery -->
+        <script src="/static/flat-ui/js/vendor/jquery.min.js"></script>
+        <!-- customized style -->
+            <style>
+                .search-form {
+                    padding: 20px;
+                    background: #eeeeee;
+                }
+
+                .top-buffer {
+                    margin-top: 20px;
+                }
+
+                .btn-text {
+                    background-color: transparent;
+                    box-shadow: none;
+                    border-color: transparent;
+                    cursor: default;
+            }
+
+        </style>
+    <!-- end of customized style -->
+    <!-- end of our head -->
+
+    </head>
+
+    </head>
+
+    <body class="zhi page-search">
+
+        <!-- search form -->
+        <div class="row search-form">
+            <form id="search_form" name="search_form" method="get">
+                <input type="hidden" name="task_url" value="{{ task_url }}">
+
+                <div class="col-xs-offset-1 col-xs-5">
+                    <input type="text" id="query_input" name="query" value="{{ query }}" class="form-control">
+                </div>
+
+                <div class="col-xs-2">
+                    <button class="col-xs-3 btn btn-block btn-primary search-btn" type="submit">
+                        <small>
+                            知乎搜索
+                        </small>
+                    </button>
+                </div>
+
+                <div class="col-xs-2">
+                    <button class="col-xs-3 btn btn-block btn-success success-btn">
+                        <small>
+                            搜索完成
+                        </small>
+                    </button>
+                </div>
+
+
+            </form>
+            <script>
+                function add_time_stamp(form) {
+                    var timestamp_input = document.createElement('input');
+                    timestamp_input.type = 'hidden';
+                    timestamp_input.name = 'timestamp';
+                    timestamp_input.value = (new Date()).getTime();
+                    form.appendChild(timestamp_input);
+                }
+
+                (function() {
+                    $('.search-btn').click(function(e) {
+                        e.preventDefault();
+                        var form = document.search_form;
+                        add_time_stamp(form);
+
+                        var button = e.target;
+                        form.action = "/search_api/zhihu/"
+                        form.submit();
+                    });
+                })();
+
+                (function() {
+               $('.success-btn').click(function(e) {
+                   e.preventDefault();
+                   window.close();
+               })
+            })();
+        </script>
+    </div>
+    <!-- end of search form -->
+
+        <div class="zu-global-notify" id="zh-global-message" style="display:none">
+
+        <div class="zg-wrap"><div class="zu-global-nitify-inner"><a class="zu-global-notify-close" href="javascript:;" title="关闭" name="close">x</a><span class="zu-global-notify-icon"></span><span class="zu-global-notify-msg"></span></div></div></div><div class="zg-wrap zu-main clearfix"><div class="zu-main-content"><div class="zu-main-content-inner"><ul class="list contents" data-paging="{&quot;next&quot;: &quot;/r/search?q=%E7%94%B5%E9%A3%8E%E6%89%87&amp;type=content&amp;offset=10&quot;}" data-navigable="{&quot;items&quot;: &quot;&gt;.item .answer-item, &gt;.item.article-item&quot;}">
     <!-- results -->
     {% autoescape off %}
         {{ results_html }}
