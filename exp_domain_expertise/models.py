@@ -33,3 +33,17 @@ class PostTaskQuestionLog(Document):
     difficulty_scale = IntField()
     satisfaction_scale = IntField()
 
+
+class QuerySatisfactionScore(EmbeddedDocument):
+    query_index = IntField()
+    query = StringField()
+    search_engine = StringField()
+    satisfaction_score = IntField()
+
+
+class QuerySatisfactionLog(Document):
+    user = ReferenceField(User)
+    task = StringField()
+    task_id = StringField()
+    task_url = StringField()
+    satisfaction_scores = ListField(EmbeddedDocumentField(QuerySatisfactionScore))

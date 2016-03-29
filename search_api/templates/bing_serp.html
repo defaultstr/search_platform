@@ -52,6 +52,10 @@ _G.BCT=new Date;
         <form id="search_form" name="search_form" method="get">
             <input type="hidden" name="task_url" value="{{ task_url }}">
 
+            {% if log == 0 %}
+                <input type="hidden" name="log" value="0">
+            {% endif %}
+
             <div class="col-xs-offset-1 col-xs-5">
                 <input type="text" id="query_input" name="query" value="{{ query }}" class="form-control">
             </div>

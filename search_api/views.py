@@ -17,6 +17,8 @@ def bing_search(user, request):
     query = request.GET.get('query', '')
     task_url = request.GET.get('task_url', '')
     timestamp = int(request.GET.get('timestamp', '1'))
+    log = int(request.GET.get('log', '1'))
+
     page = int(request.GET.get('page', '1'))
     page = max(page, 1)
     max_page = 5
@@ -46,20 +48,20 @@ def bing_search(user, request):
             results_html += results.results[idx].html_content
 
         # log query
-        log = QueryLog(
-            user=user,
-            task_url=task_url,
-            query=query,
-            search_engine='bing',
-            page=page,
-            timestamp=timestamp,
-        )
-        log.save()
+        if log == 1:
+            log = QueryLog(
+                user=user,
+                task_url=task_url,
+                query=query,
+                search_engine='bing',
+                page=page,
+                timestamp=timestamp,
+            )
+            log.save()
 
     #show pagination
     if query != '':
         show_pagination = True
-
 
     return render_to_response(
         'bing_serp.html',
@@ -67,6 +69,7 @@ def bing_search(user, request):
             'cur_user': user,
             'query': query,
             'task_url': task_url,
+            'log': log,
             'results_html': results_html,
             'show_pagination': show_pagination,
             'page': page,
@@ -83,6 +86,7 @@ def baidu_cqa_search(user, request):
     query = request.GET.get('query', '')
     task_url = request.GET.get('task_url', '')
     timestamp = int(request.GET.get('timestamp', '1'))
+    log = int(request.GET.get('log', '1'))
 
     results_html = ''
     show_pagination = False
@@ -104,15 +108,16 @@ def baidu_cqa_search(user, request):
             results_html += results.results[idx].html_content
 
         # log query
-        log = QueryLog(
-            user=user,
-            task_url=task_url,
-            query=query,
-            search_engine='baidu_cqa',
-            page=1,
-            timestamp=timestamp,
-        )
-        log.save()
+        if log == 1:
+            log = QueryLog(
+                user=user,
+                task_url=task_url,
+                query=query,
+                search_engine='baidu_cqa',
+                page=1,
+                timestamp=timestamp,
+            )
+            log.save()
 
     return render_to_response(
         'baidu_cqa_serp.html',
@@ -120,6 +125,7 @@ def baidu_cqa_search(user, request):
             'cur_user': user,
             'query': query,
             'task_url': task_url,
+            'log': log,
             'results_html': results_html,
         },
         RequestContext(request),
@@ -132,6 +138,7 @@ def zhihu_search(user, request):
     query = request.GET.get('query', '')
     task_url = request.GET.get('task_url', '')
     timestamp = int(request.GET.get('timestamp', '1'))
+    log = int(request.GET.get('log', '1'))
 
     results_html = ''
     show_pagination = False
@@ -153,15 +160,16 @@ def zhihu_search(user, request):
             results_html += results.results[idx].html_content
 
         # log query
-        log = QueryLog(
-            user=user,
-            task_url=task_url,
-            query=query,
-            search_engine='zhihu',
-            page=1,
-            timestamp=timestamp,
-        )
-        log.save()
+        if log == 1:
+            log = QueryLog(
+                user=user,
+                task_url=task_url,
+                query=query,
+                search_engine='zhihu',
+                page=1,
+                timestamp=timestamp,
+            )
+            log.save()
 
     return render_to_response(
         'zhihu_serp.html',
@@ -169,6 +177,7 @@ def zhihu_search(user, request):
             'cur_user': user,
             'query': query,
             'task_url': task_url,
+            'log': log,
             'results_html': results_html,
         },
         RequestContext(request),

@@ -4,6 +4,7 @@ __author__ = 'defaultstr'
 
 from tasks import *
 from random import shuffle
+from collections import defaultdict
 from .models import *
 
 
@@ -45,3 +46,13 @@ def get_next_step(cur_step):
     else:
         return task_steps[idx+1]
 
+
+def get_search_engine_names(name):
+    if name == 'bing':
+        return u'必应搜索'
+    elif name == 'baidu_cqa':
+        return u'百度知道'
+    elif name == 'zhihu':
+        return u'知乎'
+    else:
+        return u'其他'

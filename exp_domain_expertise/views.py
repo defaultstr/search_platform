@@ -3,13 +3,14 @@
 __author__ = 'defaultstr'
 from django.shortcuts import render_to_response
 from django.http import HttpResponseRedirect
-from django.template import RequestContext
+from django.template import RequestContext, loader
 from user_system.utils import require_login
 import task_manager.utils as task_utils
 import utils
 import tasks
 from .models import *
 from .forms import *
+from search_api.models import *
 
 
 @require_login
@@ -160,11 +161,63 @@ def query_satisfaction(user, request, task_id):
     except DoesNotExist:
         return HttpResponseRedirect(utils.concat_url(url, 'start'))
 
+    query_logs = QueryLog.objects(user=user, task_url=url, page=1)
+    error_message = None
+
+    if request.method == "POST":
+        scores = []
+        for idx, query_log in enumerate(query_logs):
+            score = QuerySatisfactionScore()
+            score.query_index = idx+1
+            score.query = query_log.query
+            score.search_engine = query_log.search_engine
+            sat_scale = int(request.POST.get('satisfaction_scale_%d' % (idx+1), '-1'))
+
+            if sat_scale != -1:
+                score.satisfaction_score = sat_scale
+                scores.append(score)
+            else:
+                error_message = u'未标注查询 %d的满意度！' % (idx+1)
+                break
+
+        if error_message is None:
+            log = QuerySatisfactionLog()
+            log.user = user
+            log.task = tasks.task_url
+            log.task_url = url
+            log.task_id = task_id
+            log.satisfaction_scores = scores
+            log.save()
+
+            next_step = utils.get_next_step(task_state.current_step)
+            if next_step is None:
+                task_utils.end_task(user, url)
+                return HttpResponseRedirect('/task/home/')
+            else:
+                return HttpResponseRedirect(utils.concat_url(url, next_step))
+
+    queries = []
+    for idx, query_log in enumerate(query_logs):
+        t = loader.get_template('query_item.html')
+        c = RequestContext(
+            request,
+            {
+                'query_idx': idx+1,
+                'search_engine_name': utils.get_search_engine_names(query_log.search_engine),
+                'search_engine': query_log.search_engine,
+                'query': query_log.query,
+            }
+        )
+        queries.append(t.render(c))
+
     return render_to_response(
-        'exp_test.html',
+        'query_satisfaction.html',
         {
             'cur_user': user,
             'task_url': url,
+            'task_description': task.description,
+            'queries': queries,
+            'error_message': error_message,
         },
         RequestContext(request),
     )

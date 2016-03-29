@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% block title %} 查询满意度反馈 {% endblock %}
+
+{% block css %}
+    <style>
+        .query {
+            background: #FFF;
+            border-radius: 2px;
+            margin-top: 1px;
+            margin-bottom: 10px;
+        }
+
+        .query-item {
+            margin-top: 10px;
+            margin-bottom: 10px;
+            padding: 10px;
+            border-bottom: solid 2px;
+        }
+    </style>
+
+{% endblock %}
+
+{% block content %}
+    <script src="/static/raty/jquery.raty.js"></script>
+    <div class="row">
+    <div class="col-xs-offset-1 col-xs-10 user_info">
+        <form id="pre_task_question_form" name="pre_task_question_form" action="" method="POST">
+            {% csrf_token %}
+            <!-- task description -->
+            <div class="row">
+                <b>任务描述：</b>
+            </div>
+            <div class="row">
+                <div class="col-xs-offset-1 col-xs-10">
+                    {{ task_description }}
+                </div>
+            </div>
+            <div class="row">
+                请问你对搜索过程中提交的以下查询是否感到满意？
+            </div>
+
+            {% if error_message %}
+            <div class="login_error_message">
+                {{ error_message }}
+            </div>
+            {% endif %}
+
+            {% autoescape off %}
+            {% for q_html in queries %}
+                {{ q_html }}
+            {% endfor %}
+            {% endautoescape %}
+
+
+            <div class="row">
+                <div class="col-xs-offset-4 col-xs-4">
+                        <button class="btn btn-block btn-lg btn-primary" type="submit">
+                           提交
+                        </button>
+                </div>
+            </div>
+
+        </form>
+    </div>
+    </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        $(window).bind('beforeunload', function() {
+            return '';
+        });
+    </script>
+{% endblock %}
