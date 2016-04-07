@@ -31,7 +31,11 @@ def BingSE(query):
             head = rc_head.search(result).group()
             d['url'] = rc_url.search(head).group()
             d['title'] = head[head.index('>')+1:head.index('</a>')]
-            d['snippet'] = rc_snippet.search(result).group()
+            match = rc_snippet.search(result)
+            if match:
+                d['snippet'] = rc_snippet.search(result).group()
+            else:
+                d['snippet'] = ''
             d['html'] = result
             serp.append(d)
         res = json.dumps(serp)
