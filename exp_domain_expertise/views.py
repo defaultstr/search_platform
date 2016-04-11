@@ -145,6 +145,7 @@ def search(user, request, task_id, query=None, page=None):
         {
             'cur_user': user,
             'task_url': url,
+            'task_description': task.description,
         },
         RequestContext(request),
     )
@@ -247,6 +248,9 @@ def post_task_question(user, request, task_id):
             log.task_url = url
             log.task_id = task_id
             log.question_answer = form.cleaned_data['question_answer']
+            log.bing_scale = form.cleaned_data['bing_scale']
+            log.baidu_scale = form.cleaned_data['baidu_scale']
+            log.zhihu_scale = form.cleaned_data['zhihu_scale']
             log.knowledge_scale = form.cleaned_data['knowledge_scale']
             log.interest_scale = form.cleaned_data['interest_scale']
             log.difficulty_scale = form.cleaned_data['difficulty_scale']

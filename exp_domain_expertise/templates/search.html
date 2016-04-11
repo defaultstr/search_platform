@@ -13,6 +13,21 @@
 
 {% endblock %}
 {% block content %}
+    <div class="row text-center">
+        <h3>
+            任务描述
+        </h3>
+    </div>
+    <div class="row">
+    <div class="col-xs-offset-2 col-xs-8 user_info">
+        <div class="row">
+            <p>
+                {{ task_description }}
+            </p>
+        </div>
+    </div>
+    </div>
+
     <!-- search form -->
     <div class="row search-form">
         <form id="search_form" name="search_form" method="get" target="_blank">
