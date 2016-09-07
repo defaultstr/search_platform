@@ -15,5 +15,6 @@ urlpatterns = [
     url(r'^task/', include('task_manager.urls')),
     url(r'^search_api/', include('search_api.urls')),
     url(r'^exp_domain_expertise/', include('exp_domain_expertise.urls')),
+    url(r'^extension_log/', include('extension_log.urls')),
     url(r'^$', views.index),
 ]

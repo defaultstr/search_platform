@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 __author__ = 'defaultstr'
-from django.shortcuts import render_to_response
+from django.shortcuts import render_to_response, redirect
 from django.http import HttpResponseRedirect
 from django.template import RequestContext, loader
 from user_system.utils import require_login
@@ -139,15 +139,18 @@ def search(user, request, task_id, query=None, page=None):
     except DoesNotExist:
         return HttpResponseRedirect(utils.concat_url(url, 'start'))
 
-    url = utils.get_url(task_id)
-    return render_to_response(
-        'search.html',
+    task_url = utils.get_url(task_id)
+
+    redirect_url = '/search_api/bing/'
+    redirect_url = utils.add_parameters(
+        redirect_url,
         {
-            'cur_user': user,
-            'task_url': url,
-        },
-        RequestContext(request),
+            'task_url': task_url,
+            'search_begin_flag': 1,
+        }
     )
+
+    return HttpResponseRedirect(redirect_url)
 
 
 @require_login

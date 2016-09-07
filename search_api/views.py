@@ -18,6 +18,7 @@ def bing_search(user, request):
     task_url = request.GET.get('task_url', '')
     timestamp = int(request.GET.get('timestamp', '1'))
     log = int(request.GET.get('log', '1'))
+    search_begin_flag = int(request.GET.get('search_begin_flag', '0'))
 
     page = int(request.GET.get('page', '1'))
     page = max(page, 1)
@@ -49,7 +50,7 @@ def bing_search(user, request):
 
         # log query
         if log == 1:
-            log = QueryLog(
+            query_log = QueryLog(
                 user=user,
                 task_url=task_url,
                 query=query,
@@ -57,7 +58,7 @@ def bing_search(user, request):
                 page=page,
                 timestamp=timestamp,
             )
-            log.save()
+            query_log.save()
 
     #show pagination
     if query != '':
@@ -75,6 +76,7 @@ def bing_search(user, request):
             'page': page,
             'pages': range(1, max_page+1),
             'next_page': next_page,
+            'search_begin_flag': search_begin_flag,
         },
         RequestContext(request),
     )

@@ -42,6 +42,7 @@ INSTALLED_APPS = (
     'task_manager',
     'search_api',
     'exp_domain_expertise',
+    'extension_log',
 )
 
 MIDDLEWARE_CLASSES = (

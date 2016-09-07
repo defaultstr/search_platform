@@ -1,6 +1,14 @@
 {% extends "base.html" %}
 {% block title %} 任务后问卷 {% endblock %}
 {% block content %}
+
+    <!-- interface for chrome extension -->
+    <form name="thuir_extension_api">
+        <input type="hidden" name="user" value="{{ cur_user.username }}">
+        <input type="hidden" name="task_url" value="{{ task_url }}">
+        <input type="hidden" name="action_info" value="SEARCH_END">
+    </form>
+
     <div class="row">
     <div class="col-xs-offset-1 col-xs-10 user_info">
         <form id="post_task_question_form" name="post_task_question_form" action="" method="POST">

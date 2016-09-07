@@ -46,6 +46,14 @@ _G.FCT=new Date;
 _G.BCT=new Date;
 //]]></script><style type="text/css">.ftrH,.ftrHd,.ftrD>a,.ftrD>div{white-space:nowrap;height:36px;line-height:36px;padding:0 15px}.ftrD{max-height:216px;overflow:hidden;min-width:125px}.ftrD>a,.ftrD>div{display:block}.ftrS .ftrD{margin-right:10px}.ftrSbR{position:absolute;top:0;right:0;height:100%;margin:5px 0;padding-right:3px}.ftrB .sw_ddbk{margin:2px 0 2px 7px}.ftrB .sw_tpcg,.ftrB .sw_tpcbl{margin:0 0 0 14px}.ftrH,.ftrHd,.ftrB .sw_ddbk,.ftrB .sw_tpcg,.ftrB .sw_tpcbl{display:inline-block;*display:inline;zoom:1}z{a:1}.b_vList>li.b_annooverride{padding-bottom:0}.irhc{padding:10px;background:#fff;border:1px solid #000;position:absolute;text-decoration:none;color:#000;z-index:4}.irhc span{display:block;position:relative;margin-bottom:10px}.irhc img{display:block;position:absolute;top:0}.irhld{width:30px;height:30px;z-index:-1}.irhcs span{display:block;width:100%;text-overflow:ellipsis;overflow:hidden;white-space:nowrap}.irhcs1{font-weight:bold}.irhcs2{color:#898994}.irhcs3{color:#568e1a}#irpserp{margin-left:-1px}#irpserp.irpadt,#irpserp #irp{position:relative}#irpserp #irp a{position:absolute}.b_top .irphead{padding-bottom:8px}.b_FBleedModule .b_rich{padding-bottom:0}#irpserp .badge,#irpserp .mssf,#irpserp .msgf,#irpserp .badge_count.wrapper{position:absolute;padding:0;color:#fff;font-size:11px;line-height:20px;height:20px;cursor:pointer;left:0;bottom:0;background:#000;background:rgba(0,0,0,.7);overflow:hidden;white-space:nowrap}#irpserp .badge_count{height:20px;display:inline-block;vertical-align:middle}#irpserp img.shop,#irpserp img.shop.badge_count{padding:0;height:20px}#irpserp img.recipe,#irpserp img.recipe.badge_count{padding:3px 4px 4px;height:13px}#irpserp .badge_count .icon_text{padding-right:6px;font-size:11px;display:inline-block;vertical-align:middle}#irpserp .badge_count,#irpserp .badge_count.wrapper{line-height:normal}#irpserp .pl{position:absolute;background:url('/s/mm.png') -88px 0;height:8px;width:7px;left:8px;bottom:7px;z-index:1}#irpserp .txtol,#irpserp .mssf{padding:0 4px}#irpserp .msgf{padding:0 8px 0 18px}#irpserp .adtrst{border-right:1px solid #fff}.b_factrownosep{margin-left:-4px}.b_factrownosep>li{color:#666;font-family:'Segoe UI',Arial,Helvetica,Sans-Serif;display:inline}.b_factrownosep>li:not(.b_sritem){background-color:#f9f9f9;padding:0 4px}.b_factrownosep>li.b_sritem{font-weight:bold;padding-left:4px}.b_factrownosep>li.b_sritem .csrc{margin-left:5px}.b_factrownosep>li:not(:last-child){margin-right:8px}.b_factrownosep{margin-top:4px;margin-bottom:4px}.b_sritem .csrc{padding-right:0}#b_results .b_factrownosep>li a,#b_results .b_factrownosep>li a:visited{color:#1020d0}.b_sritem.b_srtxtstarcolor{color:#f94f2a}#b_context .b_rs .b_vList>li{padding-bottom:4px}#b_context .b_rs>.b_vList{padding-bottom:6px}#b_results .b_rs a,#b_context .b_rrs a{text-decoration:none}#b_context .b_ans>.b_vList>li{padding-bottom:4px}</style>
 
+    <!-- interface for chrome extension -->
+    {% if search_begin_flag == 1 %}
+    <form name="thuir_extension_api">
+        <input type="hidden" name="user" value="{{ cur_user.username }}">
+        <input type="hidden" name="task_url" value="{{ task_url }}">
+        <input type="hidden" name="action_info" value="SEARCH_BEGIN">
+    </form>
+    {% endif %}
 
     <!-- search form -->
     <div class="row search-form">
@@ -53,6 +61,7 @@ _G.BCT=new Date;
             <input type="hidden" name="task_url" value="{{ task_url }}">
 
             {% if log == 0 %}
+                <!-- log == 0 are only used in reviewing serp -->
                 <input type="hidden" name="log" value="0">
             {% endif %}
 
@@ -63,16 +72,23 @@ _G.BCT=new Date;
             <div class="col-xs-2">
                 <button class="col-xs-3 btn btn-block btn-primary search-btn" type="submit">
                     <small>
-                        bing搜索
+                        搜索
                     </small>
                 </button>
             </div>
 
             <div class="col-xs-2">
                 <button class="col-xs-3 btn btn-block btn-success success-btn">
+
+                    {% if log == 1 %}
                     <small>
                         搜索完成
                     </small>
+                    {% elif log == 0 %}
+                    <small>
+                        浏览完成
+                    </small>
+                    {% endif %}
                 </button>
             </div>
 
@@ -94,7 +110,7 @@ _G.BCT=new Date;
                     add_time_stamp(form);
 
                     var button = e.target;
-                    form.action = "/search_api/bing/"
+                    form.action = "/search_api/bing/";
                     form.submit();
                 });
             })();
@@ -102,7 +118,11 @@ _G.BCT=new Date;
             (function() {
                $('.success-btn').click(function(e) {
                    e.preventDefault();
+                   {% if log == 1 %}
+                   window.location = "{{ task_url }}post_task_question/";
+                   {% elif log == 0 %}
                    window.close();
+                   {% endif %}
                })
             })();
         </script>
