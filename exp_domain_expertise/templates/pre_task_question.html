@@ -5,9 +5,19 @@
     <div class="col-xs-offset-1 col-xs-10 user_info">
         <form id="pre_task_question_form" name="pre_task_question_form" action="" method="POST">
             {% csrf_token %}
-            <!-- re-input task description -->
+            <!-- task description -->
             <div class="row">
-                <b>1.请复述搜索任务描述：</b>
+                <b>任务描述：</b>
+            </div>
+            <div class="row">
+                <div class="col-xs-offset-1 col-xs-10">
+                    {{ task_description }}
+                </div>
+            </div>
+
+            <!-- pre-task answers -->
+            <div class="row">
+                <b>1.请你根据现有知识,绘制与该问题<i>相关</i>的概念图,然后尝试回答该问题：</b>
             </div>
             <div class="row">
                 <div class="col-xs-offset-1 col-xs-10">
