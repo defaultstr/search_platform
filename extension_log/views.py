@@ -14,6 +14,7 @@ def insertMessageToDB(log_list):
         e_log = ExtensionLog()
         try:
             e_log.user = User.objects.get(username=log['user'])
+            e_log.username = log['user']
             e_log.task_url = log['task_url']
             e_log.time = log['time']
             e_log.timestamp = log['abs_time']

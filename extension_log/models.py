@@ -8,6 +8,7 @@ from user_system.models import *
 
 class ExtensionLog(Document):
     user = ReferenceField(User)
+    username = StringField()
     task_url = StringField()
     time = LongField()
     timestamp = LongField()
