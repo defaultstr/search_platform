@@ -6,6 +6,7 @@
         <form id="pre_task_question_form" name="pre_task_question_form" action="" method="POST">
             {% csrf_token %}
             <!-- task description -->
+            <!--
             <div class="row">
                 <b>任务描述：</b>
             </div>
@@ -14,10 +15,11 @@
                     {{ task_description }}
                 </div>
             </div>
+            -->
 
             <!-- pre-task answers -->
             <div class="row">
-                <b>1.请你根据现有知识,绘制与该问题<i>相关</i>的概念图,然后尝试回答该问题：</b>
+                <b>1.请你复述一遍刚才的问题,并尝试根据现有知识回答该问题：</b>
             </div>
             <div class="row">
                 <div class="col-xs-offset-1 col-xs-10">
