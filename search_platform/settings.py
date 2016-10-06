@@ -43,6 +43,7 @@ INSTALLED_APPS = (
     'search_api',
     'exp_domain_expertise',
     'extension_log',
+    'behavior_log',
 )
 
 MIDDLEWARE_CLASSES = (

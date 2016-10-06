@@ -122,6 +122,7 @@ def pre_task_question(user, request, task_id):
         {
             'cur_user': user,
             'task_url': url,
+            'task_description': task.description,
             'error_message': error_message,
         },
         RequestContext(request),

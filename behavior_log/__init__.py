@@ -1,8 +1,3 @@
-#!/usr/bin/env python
+#!/user/bin/env python
 # -*- coding: utf-8 -*-
-"""
-
-"""
 __author__ = 'defaultstr'
-
-
