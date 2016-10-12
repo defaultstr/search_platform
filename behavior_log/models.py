@@ -8,11 +8,6 @@ from exp_domain_expertise.models import *
 from extension_log.models import *
 
 
-def document_to_json(doc):
-    assert(isinstance(doc, Document))
-    obj = {}
-
-
 class Fixation(Document):
     timestamp = LongField()
     x_on_screen = IntField()
@@ -30,6 +25,15 @@ class MouseMovement(Document):
 
 
 class Click(Document):
+    x_on_page = IntField()
+    y_on_page = IntField()
+    timestamp = LongField()
+    url = StringField()
+
+
+class Hover(Document):
+    x_on_page = IntField()
+    y_on_page = IntField()
     timestamp = LongField()
     url = StringField()
 
@@ -39,47 +43,64 @@ class ViewPort(Document):
     end_time = LongField()
     x_pos = IntField()
     y_pos = IntField()
+
     fixations = ListField(ReferenceField(Fixation))
     mouse_movements = ListField(ReferenceField(MouseMovement))
     clicks = ListField(ReferenceField(Click))
+    hovers = ListField(ReferenceField(Hover))
 
 
 class SERPPage(Document):
+    url = StringField()
+    query = StringField()
     page_num = IntField()
     start_time = LongField()
     end_time = LongField()
+
     html = StringField()
     mhtml = StringField()
     visible_elements = StringField()
+
     viewports = ListField(ReferenceField(ViewPort))
-    clicked_pages = ListField(GenericReferenceField)
+    clicked_pages = ListField(GenericReferenceField())
 
 
 class LandingPage(Document):
+    url = StringField()
     start_time = LongField()
     end_time = LongField()
+
     html = StringField()
     mhtml = StringField()
     visible_elements = StringField()
+
     usefulness_score = IntField()
+
     viewports = ListField(ReferenceField(ViewPort))
-    clicked_pages = ListField(GenericReferenceField)
+    clicked_pages = ListField(GenericReferenceField())
+    redirect_to = GenericReferenceField()
 
 
-class QuerySession(Document):
+class Query(Document):
     query = StringField()
-    pages = ReferenceField(SERPPage)
     start_time = LongField()
+    end_time = LongField()
+
     satisfaction_score = IntField()
+
+    pages = ListField(ReferenceField(SERPPage))
 
 
 class TaskSession(Document):
     user = ReferenceField(User)
     task_url = StringField()
     start_time = LongField()
+    end_time = LongField()
+
     pre_task_question_log = ReferenceField(PreTaskQuestionLog)
     post_task_question_log = ReferenceField(PostTaskQuestionLog)
     answer_score = IntField()
-    query_sessions = ListField(ReferenceField(QuerySession))
+
+    queries = ListField(ReferenceField(Query))
 
 
