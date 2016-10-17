@@ -10,10 +10,13 @@ from extension_log.models import *
 
 class Fixation(Document):
     timestamp = LongField()
+    origin_timestamp = LongField()
     x_on_screen = IntField()
     y_on_screen = IntField()
     x_on_page = IntField()
     y_on_page = IntField()
+    duration = IntField()
+    fixation_idx = IntField()
 
 
 class MouseMovement(Document):
@@ -22,6 +25,7 @@ class MouseMovement(Document):
     start_y = IntField()
     end_x = IntField()
     end_y = IntField()
+    duration = IntField()
 
 
 class Click(Document):
@@ -51,6 +55,9 @@ class ViewPort(Document):
 
 
 class SERPPage(Document):
+    username = StringField()
+    task_url = StringField()
+
     url = StringField()
     query = StringField()
     page_num = IntField()
@@ -66,6 +73,9 @@ class SERPPage(Document):
 
 
 class LandingPage(Document):
+    username = StringField()
+    task_url = StringField()
+
     url = StringField()
     start_time = LongField()
     end_time = LongField()
@@ -78,10 +88,14 @@ class LandingPage(Document):
 
     viewports = ListField(ReferenceField(ViewPort))
     clicked_pages = ListField(GenericReferenceField())
+
     redirect_to = GenericReferenceField()
 
 
 class Query(Document):
+    username = StringField()
+    task_url = StringField()
+
     query = StringField()
     start_time = LongField()
     end_time = LongField()

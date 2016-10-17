@@ -100,5 +100,12 @@ def save_doc_to_db(doc):
     doc.save()
 
 
+def output_mhtml(mhtml, filename):
+    import base64
+    data = base64.b64decode(mhtml[13:])
+    with open(filename, 'wb') as fout:
+        print >>fout, data
+
+
 
 

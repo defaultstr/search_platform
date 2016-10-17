@@ -21,8 +21,10 @@ class EyeReader(object):
         self.click_list = None
         self.fin = None
         self.col_names = None
-        self.col_name_to_idx =  None
+        self.col_name_to_idx = None
         self.adjust_time = 0
+        self.diff_local_recording = 0
+
 
     def _get_by_name(self, line, name):
         e = line.split('\t')
@@ -46,6 +48,14 @@ class EyeReader(object):
         # construct fixation df
         columns = ['timestamp', 'fixation_idx', 'duration',
                    'x_on_screen', 'y_on_screen']
+
+        # compute the diff between LocalTimestamp and RecordindTimestamp
+
+        line = self.fin.readline()
+        local_timestamp = self.get_time_stamp(line)
+        rec_timestamp = int(self._get_by_name(line, 'RecordingTimestamp'))
+        self.diff_local_recording = local_timestamp - rec_timestamp
+
         data = []
         cur_fixation_idx = -1
         for line in self.fin:
@@ -98,6 +108,7 @@ class EyeReader(object):
         if click_timestamps is None or len(click_timestamps) == 0:
             self.adjust_time = 0
         else:
+            diff = [x for x in diff if x < 500]
             self.adjust_time = int(np.mean(diff))
         print 'adjust time is %d ms' % self.adjust_time
 
@@ -130,4 +141,6 @@ class EyeReader(object):
         milli = timestamp % 1000
         return time.strftime('%Y/%m/%d %H:%M:%S', time.localtime(sec))+'.'+str(milli)
 
+    def get_recording_timestamp(self, mouse_timestamp):
+        return mouse_timestamp - self.adjust_time - self.diff_local_recording
 
