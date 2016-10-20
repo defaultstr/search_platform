@@ -30,12 +30,11 @@ def bing_search(user, request):
     # if query is empty, just return a search form
     if query != '':
         # check if the query has been issued
-        results = None
-        try:
-            results = BingResults.objects.get(query=query)
-        except DoesNotExist:
-            # if it has not, crawl results using search api
+        results = BingResults.objects(query=query)
+        if len(results) == 0:
             results = utils.crawl_bing(query)
+        else:
+            results = results[0]
 
         start_at = (page - 1) * 10
         end_at = min(len(results.results), start_at + 10)

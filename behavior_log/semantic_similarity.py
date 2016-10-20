@@ -244,6 +244,8 @@ def test():
     print 'non query term fixation:'
     print 'avg: %f\tstd: %f' % (np.mean(non_query_times), np.std(non_query_times))
 
+    return query_term_times, non_query_times
+
 
 def similarity():
     ss = SemanticSimilarity()
