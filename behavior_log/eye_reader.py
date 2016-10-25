@@ -105,10 +105,10 @@ class EyeReader(object):
             while j >= 0 and self.click_list[j] > click_timestamps[i]:
                 j -= 1
             diff.append(click_timestamps[i] - self.click_list[j])
-        if click_timestamps is None or len(click_timestamps) == 0:
+        diff = [x for x in diff if x < 500]
+        if click_timestamps is None or len(diff) == 0:
             self.adjust_time = 0
         else:
-            diff = [x for x in diff if x < 500]
             self.adjust_time = int(np.mean(diff))
         print 'adjust time is %d ms' % self.adjust_time
 

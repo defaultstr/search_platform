@@ -87,6 +87,8 @@ def save_list_to_db(l):
 
 
 def save_doc_to_db(doc):
+    if doc is None:
+        return
     assert(isinstance(doc, Document))
     doc_dict = doc._data
     for key in doc:

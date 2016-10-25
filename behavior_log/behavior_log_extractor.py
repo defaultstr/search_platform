@@ -13,6 +13,7 @@ from collections import defaultdict
 import urllib as urllib
 from search_api.models import QueryLog
 import json
+import pandas as pd
 
 DEBUG = True
 
@@ -25,7 +26,7 @@ class BehaviorLogExtractor(object):
     _query_pattern = re.compile('query=(.*?)(&|$)')
     _page_pattern = re.compile('page=(.*?)(&|$)')
 
-    def __init__(self, user):
+    def __init__(self, user, filename):
         if isinstance(user, User):
             self.user = user
         elif isinstance(user, str):
@@ -48,16 +49,25 @@ class BehaviorLogExtractor(object):
         self.all_viewports = None
         self.cur_viewport = None
         self.num_viewports = 0
+        self.last_serp = None
 
-        fixation_file = './eyetracking_log/%s.tsv' % self.user.username
-        debug_print('Read fixation logs from %s' % fixation_file)
+        self.fixation_file = './eyetracking_log/%s' % filename
+        debug_print('Read fixation logs from %s' % self.fixation_file)
         self.eye_reader = EyeReader()
-        self.eye_reader.open(fixation_file)
+        self.eye_reader.open(self.fixation_file)
         debug_print('#fixations: %d' % len(self.eye_reader.fixation_df))
 
     def extract_task_session(self, task_url):
-        start_log = list(ExtensionLog.objects(user=self.user, task_url=task_url, action='SEARCH_BEGIN'))[-1]
-        end_log = list(ExtensionLog.objects(user=self.user, task_url=task_url, action='SEARCH_END'))[-1]
+        debug_print(self.user.username)
+        debug_print(task_url)
+
+        try:
+            start_log = list(ExtensionLog.objects(user=self.user, task_url=task_url, action='SEARCH_BEGIN'))[-1]
+            end_log = list(ExtensionLog.objects(user=self.user, task_url=task_url, action='SEARCH_END'))[-1]
+            pre_task_log = list(PreTaskQuestionLog.objects(user=self.user, task_url=task_url))[-1]
+            post_task_log = list(PostTaskQuestionLog.objects(user=self.user, task_url=task_url))[-1]
+        except IndexError:
+            return None
 
         click_timestamps = [l.timestamp
                             for l in ExtensionLog.objects(user=self.user, task_url=task_url, action='CLICK')]
@@ -74,8 +84,8 @@ class BehaviorLogExtractor(object):
             task_url=task_url,
             start_time=start_log.timestamp,
             end_time=end_log.timestamp,
-            pre_task_question_log=list(PreTaskQuestionLog.objects(user=self.user, task_url=task_url))[-1],
-            post_task_question_log=list(PostTaskQuestionLog.objects(user=self.user, task_url=task_url))[-1],
+            pre_task_question_log=pre_task_log,
+            post_task_question_log=post_task_log,
             answer_score=-1,
             queries=[],
         )
@@ -204,7 +214,7 @@ class BehaviorLogExtractor(object):
     def parse_viewports(self, task_url):
         self.url2open_page = defaultdict(list)
         for p in self.open_pages:
-            self.url2open_page[p.url].append(p)
+            self.url2open_page[p[0].url].append(p[0])
 
         self.q_ext_logs = list(
             ExtensionLog.objects(
@@ -213,6 +223,8 @@ class BehaviorLogExtractor(object):
                 action__in=['PAGE_START', 'SCROLL', 'PAGE_END', 'JUMP_OUT', 'JUMP_IN', ],
             )
         )
+
+        self.q_ext_logs = sorted(self.q_ext_logs, key=lambda x: x.timestamp)
         debug_print('#viewport extension logs: %d' % len(self.q_ext_logs))
         debug_print('#viewport extension logs: %d' % len([l for l in self.q_ext_logs if l.action == 'SCROLL']))
         self.cur_log_idx = 0
@@ -232,8 +244,17 @@ class BehaviorLogExtractor(object):
             elif self.accept_log(accept_actions=['SCROLL']):
                 l = self.cur_log
                 m = json.loads(self.cur_log.message)
-
-                self.new_viewport(self.cur_log, int(m['to']['x']), int(m['to']['y']))
+                cur_x, cur_y = 0, 0
+                if self.cur_viewport:
+                    cur_x, cur_y = self.cur_viewport.x_pos, self.cur_viewport.y_pos
+                else:
+                    page = self.find_page_by_site_and_timestamp(l.site, l.timestamp)
+                    if page and len(page.viewports) > 0:
+                        cur_x, cur_y = page.viewports[-1].x_pos, page.viewports[-1].y_pos
+                self.end_cur_viewport(self.cur_log)
+                dx = int(m['to']['x']) - int(m['from']['x'])
+                dy = int(m['to']['y']) - int(m['from']['y'])
+                self.new_viewport(self.cur_log, cur_x + dx, cur_y + dy)
             elif self.accept_log(accept_actions=['PAGE_END']):
                 if self.active_page and self.active_page.url == self.cur_log.site:
                     self.end_cur_viewport(self.cur_log)
@@ -259,6 +280,15 @@ class BehaviorLogExtractor(object):
                 action__in=['PAGE_START', 'PAGE_END', 'JUMP_OUT', 'JUMP_IN', 'CLICK', 'USEFULNESS_ANNOTATION'],
             )
         )
+
+        self.q_ext_logs = sorted(self.q_ext_logs, key=lambda x: x.timestamp)
+        '''
+        for l0, l1 in zip(self.q_ext_logs[0:-1], self.q_ext_logs[1:]):
+
+                print l0.action, l0.site
+                print l1.action, l1.site
+        '''
+
         self.cur_log_idx = 0
         self.cur_log = None
 
@@ -297,7 +327,8 @@ class BehaviorLogExtractor(object):
                 )
 
                 self.active_page = serp
-                self.open_pages.append(serp)
+
+                self.open_pages.append([serp, True])
                 self.cur_query = Query(
                     username=self.user.username,
                     task_url=task_url,
@@ -328,8 +359,10 @@ class BehaviorLogExtractor(object):
                     viewports=[],
                     clicked_pages=[],
                 )
+
                 self.active_page = serp
-                self.open_pages.append(serp)
+
+                self.open_pages.append([serp, True])
 
                 self.cur_query.pages.append(serp)
 
@@ -354,39 +387,53 @@ class BehaviorLogExtractor(object):
                     viewports=[],
                     clicked_pages=[],
                 )
-
-                self.open_pages.append(p)
+                # debug_print('Open page: %s' % l.site)
+                self.open_pages.append([p, True])
 
                 refer_page = self.url2referrer_page.get(p.url)
                 if refer_page is not None:
+                    # debug_print('Add %s to clicked pages: %s' % (l.site, refer_page.url))
                     refer_page.clicked_pages.append(p)
                     del self.url2referrer_page[p.url]
+                elif self.last_serp:
+                    self.last_serp.clicked_pages.append(p)
+                    self.last_serp = None
             elif self.accept_log(accept_actions=['PAGE_END']):
                 l = self.cur_log
 
-                closed_pages = [p for p in self.open_pages if p.url == l.site]
+                closed_pages = [p for p in self.open_pages if p[0].url == l.site and p[1]]
                 if len(closed_pages) > 0:
-                    closed_pages[0].end_time = l.timestamp
+                    closed_pages[0][0].end_time = l.timestamp
+                    closed_pages[0][1] = False
+                    '''
+                    debug_print(l.site)
+                    debug_print(closed_pages[0][0].start_time)
+                    debug_print(closed_pages[0][0].end_time)
+                    '''
+ 
+                    self.possible_redirect_referrer = closed_pages[0][0]
 
-                    self.possible_redirect_referrer = closed_pages[0]
-
-                    if closed_pages[0] == self.active_page:
+                    if closed_pages[0][0] == self.active_page:
                         self.active_page = None
             elif self.accept_log(accept_actions=['JUMP_OUT']):
+                if isinstance(self.active_page, SERPPage):
+                    self.last_serp = self.active_page
                 self.active_page = None
             elif self.accept_log(accept_actions=['JUMP_IN']):
+
+                self.last_serp = None
                 l = self.cur_log
 
-                jump_in_pages = [p for p in self.open_pages if p.url == l.site]
+                jump_in_pages = [p for p in self.open_pages if p[0].url == l.site and p[1]]
                 if len(jump_in_pages) > 0:
-                    self.active_page = jump_in_pages[0]
+                    self.active_page = jump_in_pages[0][0]
             elif self.accept_log(accept_actions=['CLICK']):
                 l = self.cur_log
                 m = json.loads(l.message)
                 if self.active_page is not None:
                     self.url2referrer_page[m['href']] = self.active_page
                 else:
-                    refer_pages = [p for p in self.open_pages if p.url == l.site]
+                    refer_pages = [p[0] for p in self.open_pages if p[0].url == l.site and p[1]]
                     if len(refer_pages) > 0:
                         self.url2referrer_page[m['href']] = refer_pages[0]
             elif self.accept_log(accept_actions=['USEFULNESS_ANNOTATION']):
@@ -394,7 +441,7 @@ class BehaviorLogExtractor(object):
                 m = json.loads(l.message)
                 annotated_page = self.active_page
                 if annotated_page is None or (not isinstance(annotated_page, LandingPage)):
-                    pages = [p for p in self.open_pages if p.url == l.site and isinstance(p, LandingPage)]
+                    pages = [p[0] for p in self.open_pages if p[0].url == l.site and isinstance(p[0], LandingPage)]
                     if len(pages) > 0:
                         annotated_page = pages[0]
                 if annotated_page is not None:
@@ -596,8 +643,10 @@ class BehaviorLogExtractor(object):
         Fixation.objects().delete()
 
     def save_task_session_to_database(self, task_url):
-        task_session = self.extract_task_session(task_url)
-        utils.save_doc_to_db(task_session)
+        task_sessions = TaskSession.objects(user=self.user, task_url=task_url)
+        if len(task_sessions) == 0:
+            task_session = self.extract_task_session(task_url)
+            utils.save_doc_to_db(task_session)
 
 
 def test():
@@ -608,30 +657,38 @@ def test():
 
 
 def insert_to_database():
-    import os
-    filenames = os.listdir('./eyetracking_log/')
-    usernames = [f.split('.')[0] for f in filenames]
     BehaviorLogExtractor.clean_database()
-    for username in usernames:
-        extractor = BehaviorLogExtractor(username)
+    df = pd.read_csv('./behavior_log/userlist.tsv', sep='\t')
+    for idx, row in df.iterrows():
+        extractor = BehaviorLogExtractor(row.username, row.filename)
         for i in range(1, 7):
             extractor.save_task_session_to_database('/exp_domain_expertise/%d/' % i)
 
 
 def iter_user_and_task():
-    import os
-    filenames = os.listdir('./eyetracking_log/')
-    usernames = [f.split('.')[0] for f in filenames]
-    for username in usernames:
+    df = pd.read_csv('./behavior_log/userlist.tsv', sep='\t')
+    for idx, row in df.iterrows():
         for i in range(1, 7):
-            yield username, '/exp_domain_expertise/%d/' % i
+            yield row.username, '/exp_domain_expertise/%d/' % i
+
+
+def iter_user():
+    df = pd.read_csv('./behavior_log/userlist.tsv', sep='\t')
+    usernames = set(df['username'])
+    for username in usernames:
+        yield username
 
 
 def extract_viewport_info_str_from_page(eye_reader, page):
     ret = []
     ret.append('%s\t%s\t%s\t%d' % (page.username, page.task_url, page.url, len(page.viewports)))
     for vp in page.viewports:
-        ret[-1] += '\t%d %d %d' % (vp.x_pos, vp.y_pos, eye_reader.get_recording_timestamp(vp.start_time))
+        start_time = eye_reader.get_recording_timestamp(vp.start_time)
+        duration = 500
+        if vp.end_time:
+            end_time = eye_reader.get_recording_timestamp(vp.end_time)
+            duration = end_time - start_time
+        ret[-1] += '\t%d %d %d %d' % (vp.x_pos, vp.y_pos, start_time, duration)
     for p in page.clicked_pages:
         ret += extract_viewport_info_str_from_page(eye_reader, p)
     return ret
@@ -641,22 +698,23 @@ def extract_viewport_info_str():
     import os
     filenames = os.listdir('./eyetracking_log/')
     usernames = [f.split('.')[0] for f in filenames]
-    BehaviorLogExtractor.clean_database()
 
     ret = []
-    for username in usernames:
-        extractor = BehaviorLogExtractor(username)
+    df = pd.read_csv('./behavior_log/userlist.tsv', sep='\t')
+    for idx, row in df.iterrows():
+        '''
+        if row.username != '2014030075':
+            continue
+        '''
+        extractor = BehaviorLogExtractor(row.username, row.filename)
         for i in range(1, 7):
+        #for i in range(2, 3):
             task_session = extractor.extract_task_session('/exp_domain_expertise/%d/' % i)
-            for q in task_session.queries:
-                for p in q.pages:
-                    ret += extract_viewport_info_str_from_page(extractor.eye_reader, p)
+            if task_session:
+                for q in task_session.queries:
+                    for p in q.pages:
+                        ret += extract_viewport_info_str_from_page(extractor.eye_reader, p)
     with open('./tmp/viewports.txt', 'w') as fout:
         for idx, line in enumerate(ret):
             print >>fout, '%d\t%s' % (idx, line)
-
-
-
-
-
 
