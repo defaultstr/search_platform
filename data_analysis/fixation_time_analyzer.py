@@ -2,6 +2,13 @@
 # -*- coding: utf-8 -*-
 __author__ = 'defaultstr'
 
+if __name__ == '__main__':
+    import sys
+    ROOT = '/home/defaultstr/PycharmProjects/search_platform'
+    sys.path.insert(0, ROOT)
+    from mongoengine import *
+    connect('search_platform')
+
 from data_analyzer import DataAnalyzer
 from mongoengine import connect
 from behavior_log.models import *
@@ -17,6 +24,34 @@ class FixationTimeAnalyzerBase(DataAnalyzer):
 
     def __init__(self, user_list=None):
         super(FixationTimeAnalyzerBase, self).__init__(user_list=user_list)
+
+    def _get_query_and_add_terms(self, task_session):
+        ret = []
+        used_terms = set()
+        for q in task_session.queries:
+            query_terms = self._word_segment(q.query)
+            add_terms = list(set(query_terms) - used_terms)
+            if len(add_terms) > 0:
+                used_terms.update(add_terms)
+                ret.append((q, add_terms))
+        return ret
+
+    def _get_query_and_terms(self, task_session):
+        return [(q, list(set(self._word_segment(q.query)))) for q in task_session.queries]
+
+    def _get_query_and_new_terms(self, task_session):
+        ret = []
+        task_id = task_session.task_url.split('/')[2]
+        task = get_task_by_id(task_id)
+        task_desc_terms = set(self._word_segment(task.description))
+
+        for q in task_session.queries:
+            query_terms = self._word_segment(q.query)
+            new_terms = list(set(query_terms) - task_desc_terms)
+            if len(new_terms) > 0:
+                ret.append((q, new_terms))
+        return ret
+
 
     @staticmethod
     def _get_text_from_page(page):
@@ -241,6 +276,13 @@ class TermSourceAnalyzer(FixationTimeAnalyzerBase):
     def __init__(self, user_list=None):
         super(TermSourceAnalyzer, self).__init__(user_list=user_list)
 
+        self.extract_functions.append(('new_term_from_serp', self.new_term_from_serp))
+        self.extract_functions.append(('new_term_from_landing_page', self.new_term_from_landing_page))
+        self.extract_functions.append(('new_term_from_fixation', self.new_term_from_fixation))
+        self.extract_functions.append(('new_term_from_fixation_on_serp', self.new_term_from_fixation_on_serp))
+        self.extract_functions.append(('new_term_from_fixation_on_landing_page',
+                                       self.new_term_from_fixation_on_landing_page))
+
         self.extract_functions.append(('query_term_from_desc', self.query_term_from_desc))
         self.extract_functions.append(('query_term_from_serp', self.query_term_from_serp))
         self.extract_functions.append(('query_term_from_landing_page', self.query_term_from_landing_page))
@@ -257,18 +299,6 @@ class TermSourceAnalyzer(FixationTimeAnalyzerBase):
         self.extract_functions.append(('add_term_from_fixation_on_landing_page',
                                        self.add_term_from_fixation_on_landing_page))
 
-    def _get_query_and_add_terms(self, task_session):
-        ret = []
-        used_terms = set()
-        for q in task_session.queries:
-            query_terms = self._word_segment(q.query)
-            add_terms = list(set(query_terms) - used_terms)
-            used_terms.update(add_terms)
-            ret.append((q, add_terms))
-        return ret
-
-    def _get_query_and_terms(self, task_session):
-        return [(q, list(set(self._word_segment(q.query)))) for q in task_session.queries]
 
     @staticmethod
     def _term_from_source(add_terms_list, source_list):
@@ -389,6 +419,25 @@ class TermSourceAnalyzer(FixationTimeAnalyzerBase):
                                                 extract_terms=self._get_query_and_add_terms,
                                                 page_type=LandingPage)
 
+    def new_term_from_serp(self, row, task_session):
+        return self._term_from_serp(row, task_session, extract_terms=self._get_query_and_new_terms)
+
+    def new_term_from_landing_page(self, row, task_session):
+        return self._term_from_landing_page(row, task_session, extract_terms=self._get_query_and_new_terms)
+
+    def new_term_from_fixation(self, row, task_session):
+        return self._term_from_fixated_elements(row, task_session, extract_terms=self._get_query_and_new_terms)
+
+    def new_term_from_fixation_on_serp(self, row, task_session):
+        return self._term_from_fixated_elements(row, task_session,
+                                                extract_terms=self._get_query_and_new_terms,
+                                                page_type=SERPPage)
+
+    def new_term_from_fixation_on_landing_page(self, row, task_session):
+        return self._term_from_fixated_elements(row, task_session,
+                                                extract_terms=self._get_query_and_new_terms,
+                                                page_type=LandingPage)
+
 
 def test():
     a = TermSourceAnalyzer()
@@ -397,7 +446,12 @@ def test():
 
 
 if __name__ == '__main__':
-    import sys
-    sys.path.insert(0, '../')
-    df = test()
-    df.to_pickle('./tmp/term_source.dataframe')
+    a = FixationTimeAnalyzer()
+    a.check_connection()
+    df = a.get_data_df()
+    df.to_pickle(ROOT + '/tmp/fixation_time_new.dataframe')
+
+    a = TermSourceAnalyzer()
+    a.check_connection()
+    df = a.get_data_df()
+    df.to_pickle(ROOT + '/tmp/term_source_new.dataframe')

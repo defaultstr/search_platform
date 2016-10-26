@@ -2,6 +2,13 @@
 # -*- coding: utf-8 -*-
 __author__ = 'defaultstr'
 
+if __name__ == '__main__':
+    import sys
+    ROOT = '/home/defaultstr/PycharmProjects/search_platform'
+    sys.path.insert(0, ROOT)
+    from mongoengine import *
+    connect('search_platform')
+
 from extension_log.models import *
 from behavior_log.models import *
 from user_system.models import User
@@ -658,7 +665,7 @@ def test():
 
 def insert_to_database():
     BehaviorLogExtractor.clean_database()
-    df = pd.read_csv('./behavior_log/userlist.tsv', sep='\t')
+    df = pd.read_csv(ROOT + '/behavior_log/userlist.tsv', sep='\t')
     for idx, row in df.iterrows():
         extractor = BehaviorLogExtractor(row.username, row.filename)
         for i in range(1, 7):
@@ -718,3 +725,6 @@ def extract_viewport_info_str():
         for idx, line in enumerate(ret):
             print >>fout, '%d\t%s' % (idx, line)
 
+
+if __name__ == '__main__':
+    insert_to_database()
