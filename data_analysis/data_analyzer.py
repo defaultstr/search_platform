@@ -69,7 +69,7 @@ class DataAnalyzer(object):
         return self.session_df
 
     def _task_session_stat(self, indicate_series=None):
-        if indicate_series:
+        if indicate_series is not None:
             ret = []
             assert(len(indicate_series) == len(self.session_df) == len(self.task_sessions))
             for idx, ind in enumerate(indicate_series):
