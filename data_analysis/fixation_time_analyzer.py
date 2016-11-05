@@ -4,7 +4,7 @@ __author__ = 'defaultstr'
 
 if __name__ == '__main__':
     import sys
-    ROOT = '/home/defaultstr/PycharmProjects/search_platform'
+    ROOT = sys.argv[1]
     sys.path.insert(0, ROOT)
     from mongoengine import *
     connect('search_platform')
@@ -17,6 +17,7 @@ from collections import Counter, defaultdict
 import jieba
 import json
 import numpy as np
+import pandas as pd
 from exp_domain_expertise.utils import get_task_by_id
 
 
@@ -25,13 +26,16 @@ class FixationTimeAnalyzerBase(DataAnalyzer):
     def __init__(self, user_list=None):
         super(FixationTimeAnalyzerBase, self).__init__(user_list=user_list)
 
-    def _get_query_and_add_terms(self, task_session):
+    def _get_query_and_add_terms(self, task_session, return_all=False):
         ret = []
         used_terms = set()
         for q in task_session.queries:
             query_terms = self._word_segment(q.query)
             add_terms = list(set(query_terms) - used_terms)
-            if len(add_terms) > 0:
+            if return_all:
+                used_terms.update(add_terms)
+                ret.append((q, add_terms))
+            elif len(add_terms) > 0:
                 used_terms.update(add_terms)
                 ret.append((q, add_terms))
         return ret
@@ -39,7 +43,7 @@ class FixationTimeAnalyzerBase(DataAnalyzer):
     def _get_query_and_terms(self, task_session):
         return [(q, list(set(self._word_segment(q.query)))) for q in task_session.queries]
 
-    def _get_query_and_new_terms(self, task_session):
+    def _get_query_and_new_terms(self, task_session, return_all=False):
         ret = []
         task_id = task_session.task_url.split('/')[2]
         task = get_task_by_id(task_id)
@@ -48,7 +52,9 @@ class FixationTimeAnalyzerBase(DataAnalyzer):
         for q in task_session.queries:
             query_terms = self._word_segment(q.query)
             new_terms = list(set(query_terms) - task_desc_terms)
-            if len(new_terms) > 0:
+            if return_all:
+                ret.append((q, new_terms))
+            elif len(new_terms) > 0:
                 ret.append((q, new_terms))
         return ret
 
@@ -276,6 +282,12 @@ class TermSourceAnalyzer(FixationTimeAnalyzerBase):
     def __init__(self, user_list=None):
         super(TermSourceAnalyzer, self).__init__(user_list=user_list)
 
+        self.extract_functions.append(('new_term_with_out_fixation', self.term_without_fixation))
+        self.extract_functions.append(('new_term_with_out_fixation100', self.term_without_fixation100))
+        self.extract_functions.append(('new_term_with_out_fixation200', self.term_without_fixation200))
+        self.extract_functions.append(('new_term_with_out_fixation500', self.term_without_fixation500))
+
+        self.extract_functions.append(('new_term_ratio', self.new_term_ratio))
         self.extract_functions.append(('new_term_from_serp', self.new_term_from_serp))
         self.extract_functions.append(('new_term_from_landing_page', self.new_term_from_landing_page))
         self.extract_functions.append(('new_term_from_fixation', self.new_term_from_fixation))
@@ -291,6 +303,7 @@ class TermSourceAnalyzer(FixationTimeAnalyzerBase):
         self.extract_functions.append(('query_term_from_fixation_on_landing_page',
                                        self.query_term_from_fixation_on_landing_page))
 
+        self.extract_functions.append(('add_term_ratio', self.add_term_ratio))
         self.extract_functions.append(('add_term_from_desc', self.add_term_from_desc))
         self.extract_functions.append(('add_term_from_serp', self.add_term_from_serp))
         self.extract_functions.append(('add_term_from_landing_page', self.add_term_from_landing_page))
@@ -299,20 +312,113 @@ class TermSourceAnalyzer(FixationTimeAnalyzerBase):
         self.extract_functions.append(('add_term_from_fixation_on_landing_page',
                                        self.add_term_from_fixation_on_landing_page))
 
+    def term_without_source(self, row, task_session):
+        task_id = task_session.task_url.split('/')[2]
+        task = get_task_by_id(task_id)
+        terms_from_source = set(self._word_segment(task.description))
+        query_and_term_list = self._get_query_and_new_terms(task_session)
+        num_q_terms = 0.0
+        num_terms_without_source = 0.0
+
+        pages = [p for p in self._get_all_pages_in_task_session(task_session)]
+        for q, terms in query_and_term_list:
+            for p in pages:
+                if p.start_time > q.start_time:
+                    continue
+                terms_from_source.update(self._word_segment(self._get_text_from_page(p)))
+            num_q_terms += len(terms)
+            num_terms_without_source += len([t for t in terms if t not in terms_from_source])
+
+        return num_terms_without_source
+
+    def _get_new_terms_without_fixation(self, task_session, threshold=0):
+        task_id = task_session.task_url.split('/')[2]
+        task = get_task_by_id(task_id)
+        terms_from_source = set(self._word_segment(task.description))
+        query_and_term_list = self._get_query_and_new_terms(task_session)
+        ret = []
+
+        pages = [p for p in self._get_all_pages_in_task_session(task_session)]
+        for q, terms in query_and_term_list:
+            for p in pages:
+                if p.start_time > q.start_time:
+                    continue
+                for vp in p.viewports:
+                    if vp.start_time > q.start_time:
+                        continue
+                    fixation_on_terms = self._get_viewport_text(p, vp)
+                    terms_from_source.update(
+                        [t for t in fixation_on_terms if fixation_on_terms[t] > threshold]
+                    )
+            ret += [t for t in terms if t not in terms_from_source]
+
+        return ret
+
+    def _term_without_fixation(self, row, task_session, threshold=0):
+        task_id = task_session.task_url.split('/')[2]
+        task = get_task_by_id(task_id)
+        terms_from_source = set(self._word_segment(task.description))
+        query_and_term_list = self._get_query_and_new_terms(task_session)
+
+        new_terms_without_fixation = self._get_new_terms_without_fixation(row, task_session, threshold=threshold)
+
+        num_new_terms = 0.1 + sum([len(terms) for q, terms in query_and_term_list])
+        num_new_terms_without_fixation = sum(len(terms) for terms in new_terms_without_fixation)
+
+        '''
+        pages = [p for p in self._get_all_pages_in_task_session(task_session)]
+        for q, terms in query_and_term_list:
+            for p in pages:
+                if p.start_time > q.start_time:
+                    continue
+                for vp in p.viewports:
+                    if vp.start_time > q.start_time:
+                        continue
+                    fixation_on_terms = self._get_viewport_text(p, vp)
+                    terms_from_source.update(
+                        [t for t in fixation_on_terms if fixation_on_terms[t] > threshold]
+                    )
+            num_q_terms += len(terms)
+            num_terms_without_source += len([t for t in terms if t not in terms_from_source])
+        '''
+
+        return num_new_terms_without_fixation / num_new_terms
+
+    def term_without_fixation(self, row, task_session):
+        return self._term_without_fixation(row, task_session)
+
+    def term_without_fixation100(self, row, task_session):
+        return self._term_without_fixation(row, task_session, threshold=100)
+
+    def term_without_fixation200(self, row, task_session):
+        return self._term_without_fixation(row, task_session, threshold=200)
+
+    def term_without_fixation500(self, row, task_session):
+        return self._term_without_fixation(row, task_session, threshold=500)
+
+    def new_term_ratio(self, row, task_session):
+        num_q_terms = sum([len(terms) for q, terms in self._get_query_and_terms(task_session)])
+        num_new_terms = sum([len(terms) for q, terms in self._get_query_and_new_terms(task_session)])
+        return 1.0 * num_new_terms / num_q_terms
+
+    def add_term_ratio(self, row, task_session):
+        num_q_terms = sum([len(terms) for q, terms in self._get_query_and_terms(task_session)])
+        num_add_terms = sum([len(terms) for q, terms in self._get_query_and_add_terms(task_session)])
+        return 1.0 * num_add_terms / num_q_terms
 
     @staticmethod
-    def _term_from_source(add_terms_list, source_list):
-        num_add_term_from_desc = 0.0
-        num_add_terms = 0.0
-        for add_terms, source_terms in zip(add_terms_list, source_list):
-            for t in add_terms:
-                num_add_terms += 1.0
+    def _term_from_source(terms_list, source_list):
+        num_term_from_source = 0.0
+        num_terms = 0.0
+        for terms, source_terms in zip(terms_list, source_list):
+            for t in terms:
+                num_terms += 1.0
                 if t in source_terms:
-                    num_add_term_from_desc += 1.0
-        if num_add_terms == 0.0:
+                    num_term_from_source += 1.0
+        if num_terms == 0.0:
             return 1.0
         else:
-            return num_add_term_from_desc / num_add_terms
+            return num_term_from_source / num_terms
 
     def _term_from_description(self, row, task_session, extract_terms=None):
         task_id = task_session.task_url.split('/')[2]
@@ -438,20 +544,66 @@ class TermSourceAnalyzer(FixationTimeAnalyzerBase):
                                                 extract_terms=self._get_query_and_new_terms,
                                                 page_type=LandingPage)
 
+    def output_new_terms(self, threshold=0):
+
+        columns = ['task_desc',
+                   'in_domain_new_terms', 'out_domain_new_terms',
+                   'in_domain_new_terms_without_f', 'out_domain_without_f']
+        data = []
+        for task_id in range(1, 7):
+            task = get_task_by_id(str(task_id))
+
+            indicator = self.session_df.task_id == task_id
+            in_domain_ind = indicator & (self.session_df.in_domain == 1)
+            out_domain_ind = indicator & (self.session_df.in_domain == 0)
+
+            in_domain_new_terms = Counter()
+            in_domain_new_terms_without_f = Counter()
+            for ts in self._task_session_stat(in_domain_ind):
+                q_t_list = self._get_query_and_new_terms(ts)
+                for q, terms in q_t_list:
+                    in_domain_new_terms.update(terms)
+                terms_without_f = self._get_new_terms_without_fixation(ts, threshold=threshold)
+                in_domain_new_terms_without_f.update(terms_without_f)
+
+            out_domain_new_terms = Counter()
+            out_domain_new_terms_without_f = Counter()
+            for ts in self._task_session_stat(out_domain_ind):
+                q_t_list = self._get_query_and_new_terms(ts)
+                for q, terms in q_t_list:
+                    out_domain_new_terms.update(terms)
+                terms_without_f = self._get_new_terms_without_fixation(ts, threshold=threshold)
+                out_domain_new_terms_without_f.update(terms_without_f)
+
+            data.append(
+                [task.description,
+                 ]
+            )
+
+        return columns, data
+
+
+def output_new_terms(threshold):
+    a = TermSourceAnalyzer()
+    return a.output_new_terms(threshold=threshold)
 
 def test():
     a = TermSourceAnalyzer()
-    a.check_connection()
     return a.get_data_df()
 
-
 if __name__ == '__main__':
+    '''
     a = FixationTimeAnalyzer()
     a.check_connection()
     df = a.get_data_df()
     df.to_pickle(ROOT + '/tmp/fixation_time_new.dataframe')
+    '''
 
     a = TermSourceAnalyzer()
     a.check_connection()
     df = a.get_data_df()
     df.to_pickle(ROOT + '/tmp/term_source_new.dataframe')
+
+    print DataAnalyzer.dataframe_stat(df)
+
+
