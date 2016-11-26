@@ -67,14 +67,6 @@ class FixationTimeAnalyzerBase(DataAnalyzer):
         [s.extract() for s in soup('img')]
         return soup.text
 
-    @staticmethod
-    def _word_segment(text):
-        """
-
-        :param text: a text to segment
-        :return: a list of segmented terms
-        """
-        return [w for w in jieba.cut(text) if w.strip() != '']
 
     @staticmethod
     def _get_term_freq(documents, terms=None):
@@ -360,7 +352,7 @@ class TermSourceAnalyzer(FixationTimeAnalyzerBase):
         terms_from_source = set(self._word_segment(task.description))
         query_and_term_list = self._get_query_and_new_terms(task_session)
 
-        new_terms_without_fixation = self._get_new_terms_without_fixation(row, task_session, threshold=threshold)
+        new_terms_without_fixation = self._get_new_terms_without_fixation(task_session, threshold=threshold)
 
         num_new_terms = 0.1 + sum([len(terms) for q, terms in query_and_term_list])
         num_new_terms_without_fixation = sum(len(terms) for terms in new_terms_without_fixation)
@@ -592,12 +584,10 @@ def test():
     return a.get_data_df()
 
 if __name__ == '__main__':
-    '''
     a = FixationTimeAnalyzer()
     a.check_connection()
     df = a.get_data_df()
     df.to_pickle(ROOT + '/tmp/fixation_time_new.dataframe')
-    '''
 
     a = TermSourceAnalyzer()
     a.check_connection()
