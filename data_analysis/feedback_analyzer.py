@@ -9,6 +9,8 @@ if __name__ == '__main__':
     from mongoengine import *
     connect('search_platform')
 
+import pandas as pd
+
 from data_analyzer import DataAnalyzer, variable_decorator
 from exp_domain_expertise.models import *
 
@@ -16,6 +18,12 @@ from exp_domain_expertise.models import *
 class FeedbackAnalyzer(DataAnalyzer):
     def __init__(self, user_list=None):
         super(FeedbackAnalyzer, self).__init__(user_list=user_list)
+
+        score_df = pd.read_csv(ROOT + '/tmp/score.csv', index_col=0)
+        self.answer_scores = {
+            '%s_%d' % (row.uid, row.task_id): row.score
+            for idx, row in score_df.iterrows()
+            }
 
         '''
         self.extract_functions.append(('pre_knowledge', self.get_pre_log_knowledge))
@@ -69,6 +77,18 @@ class FeedbackAnalyzer(DataAnalyzer):
         log = task_session.post_task_question_log
         assert isinstance(log, PostTaskQuestionLog)
         return log.satisfaction_scale
+
+    @variable_decorator
+    def answer_score(self, row, task_session):
+        return self.answer_scores['%s_%d' % (row.uid, row.task_id)]
+
+    def compute_other_session_features(self):
+        '''
+        self.session_df['delta_knowledge'] = self.session_df.post_log_knowledge - self.session_df.pre_log_knowledge
+        self.session_df['delta_interest'] = self.session_df.post_log_interest - self.session_df.pre_log_interest
+        self.session_df['delta_difficulty'] = self.session_df.post_log_difficulty - self.session_df.pre_log_difficulty
+        '''
+        pass
 
 if __name__ == '__main__':
     a = FeedbackAnalyzer()

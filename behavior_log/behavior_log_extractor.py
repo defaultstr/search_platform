@@ -34,13 +34,15 @@ class BehaviorLogExtractor(object):
     _page_pattern = re.compile('page=(.*?)(&|$)')
 
     def __init__(self, user, filename):
+        print user
         if isinstance(user, User):
             self.user = user
         elif isinstance(user, str):
             try:
-                self.user = User.objects.get(username=user)
+                self.user = User.objects.get(username=unicode(user))
             except DoesNotExist:
                 raise ValueError('Username "%s" can not be found in database.')
+
         self.fixations = None
         self.task_session = None
         self.q_ext_logs = None
@@ -80,6 +82,9 @@ class BehaviorLogExtractor(object):
                             for l in ExtensionLog.objects(user=self.user, task_url=task_url, action='CLICK')]
 
         self.eye_reader.time_adjust(click_timestamps)
+        if self.eye_reader.adjust_time == 0:
+            return None
+
         self.fixations = self.eye_reader.get_fixations(start_time=start_log.timestamp, end_time=end_log.timestamp)
 
         debug_print('start time: %s' % EyeReader.timestamp_to_local_time_str(start_log.timestamp))
@@ -405,6 +410,8 @@ class BehaviorLogExtractor(object):
                 elif self.last_serp:
                     self.last_serp.clicked_pages.append(p)
                     self.last_serp = None
+                elif self.active_page is not None and isinstance(self.active_page, SERPPage):
+                    self.active_page.clicked_pages.append(p)
             elif self.accept_log(accept_actions=['PAGE_END']):
                 l = self.cur_log
 
@@ -455,6 +462,10 @@ class BehaviorLogExtractor(object):
                     annotated_page.usefulness_score = m['usefulness_score']
             else:
                 break
+
+        for p in self.open_pages:
+            if p[0].end_time is None:
+                p[0].end_time = self.task_session.end_time
 
         self.task_session.queries = [
             q for q in self.task_session.queries
@@ -666,6 +677,7 @@ def test():
 def insert_to_database():
     BehaviorLogExtractor.clean_database()
     df = pd.read_csv(ROOT + '/behavior_log/userlist.tsv', sep='\t')
+    df.username = df.username.astype(str)
     for idx, row in df.iterrows():
         extractor = BehaviorLogExtractor(row.username, row.filename)
         for i in range(1, 7):

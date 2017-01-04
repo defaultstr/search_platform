@@ -58,15 +58,33 @@ class ActivenessAnalyzer(DataAnalyzer):
         return ret
 
     @variable_decorator
-    def serp_time_percentage(self, row, task_session):
+    def page_num(self, row, task_session):
         assert isinstance(task_session, TaskSession)
+        ret = 0
+        for q in task_session.queries:
+            for p in q.pages:
+                ret += len(self._get_all_pages(p))
+        return ret
+
+    @variable_decorator
+    def serp_time(self, row, task_session):
         serp_time = 0.0
         for q in task_session.queries:
-            assert isinstance(q, Query)
             for p in q.pages:
-                assert isinstance(p, SERPPage)
-                serp_time += p.end_time - p.start_time
-        return serp_time / (task_session.end_time - task_session.start_time)
+                for vp in p.viewports:
+                    serp_time += vp.end_time - vp.start_time
+        return serp_time
+
+    @variable_decorator
+    def landing_page_time(self, row, task_session):
+        landing_page_time = 0.0
+        for q in task_session.queries:
+            for serp in q.pages:
+                for p in self._get_all_pages(serp):
+                    if isinstance(p, LandingPage):
+                        for vp in p.viewports:
+                            landing_page_time += vp.end_time - vp.start_time
+        return landing_page_time
 
     @variable_decorator
     def serp_num_per_query(self, row, task_session):
@@ -93,6 +111,7 @@ class ActivenessAnalyzer(DataAnalyzer):
         for p in page.clicked_pages:
             ret += self._get_page_fixation_num(p)
         return ret
+
 
     def _get_page_click_num(self, page):
         assert isinstance(page, SERPPage) or isinstance(page, LandingPage)

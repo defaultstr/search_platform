@@ -13,8 +13,9 @@ import pandas as pd
 from mongoengine import *
 from behavior_log.models import *
 from user_system.models import *
+from bs4 import BeautifulSoup
 import jieba
-
+from exp_domain_expertise.utils import get_task_by_id
 
 def variable_decorator(func):
     return func
@@ -27,6 +28,8 @@ class DataAnalyzer(object):
 
     def __init__(self, user_list=None):
         df = pd.read_csv('./behavior_log/userlist.tsv', sep='\t')
+        df.username = df.username.astype(str)
+
         self.user_list = list(set(df.username))
         if user_list:
             self.user_list = [u for u in self.user_list if u in user_list]
@@ -73,14 +76,15 @@ class DataAnalyzer(object):
         self.session_df = pd.DataFrame(columns=columns, data=data)
 
     def init_query_df(self):
-        columns = ['uid', 'user_domain', 'task_id', 'task_domain', 'in_domain', 'session_idx', 'query_idx']
+        columns = ['uid', 'user_domain', 'task_id', 'task_domain', 'in_domain', 'session_idx',
+                   'query_idx', 'num_query']
         data = []
         for idx, row in self.session_df.iterrows():
             task_session = self.task_sessions[idx]
             assert isinstance(task_session, TaskSession)
             row = list(row[0:5]) + [idx]
             for q_idx in range(len(task_session.queries)):
-                data.append(row + [q_idx])
+                data.append(row + [q_idx, len(task_session.queries)])
         self.query_df = pd.DataFrame(columns=columns, data=data)
 
     @variable_decorator
@@ -108,12 +112,16 @@ class DataAnalyzer(object):
     def get_session_df(self):
         return self.session_df
 
+    def compute_other_session_features(self):
+        pass
+
     def get_data_df(self):
         for name, extract_function in self.extract_functions:
             print 'Extracting Variable: %s' % name
             self.add_variable(variable_name=name, extract_function=extract_function)
             print 'Finished Extracting Variable: %s' % name
             self.session_df.to_pickle('./tmp/tmp.dataframe')
+        self.compute_other_session_features()
         return self.session_df
 
     def iter_query_sessions(self):
@@ -130,7 +138,8 @@ class DataAnalyzer(object):
             print row.uid, row.task_id, row.query_idx
             data.append(extract_function(row, task_session, query))
             print '%s=%f' % (variable_name, data[-1])
-        self.query_df[variable_name] = data
+        if variable_name is not None:
+            self.query_df[variable_name] = data
 
     def get_query_df(self):
         return self.query_df
@@ -154,7 +163,9 @@ class DataAnalyzer(object):
         else:
             return list(self.task_sessions)
 
-
+    stopwords = set([u'随', u'的', u'以及', u'在', u'上',
+                     u'为什么', u'、', u'和', u'与',
+                     u'对', u'如何', u'哪些', u'吗', u'怎样'])
     @staticmethod
     def _word_segment(text):
         """
@@ -162,7 +173,7 @@ class DataAnalyzer(object):
         :param text: a text to segment
         :return: a list of segmented terms
         """
-        return [w for w in jieba.cut(text) if w.strip() != '']
+        return [w.strip() for w in jieba.lcut(text) if w.strip() != '' and w.strip() not in DataAnalyzer.stopwords]
 
     @staticmethod
     def _get_all_pages(page):
@@ -178,6 +189,24 @@ class DataAnalyzer(object):
             for p in q.pages:
                 ret += DataAnalyzer._get_all_pages(p)
         return sorted(ret, key=lambda p: p.start_time)
+
+    @staticmethod
+    def _get_text_from_page(page):
+        soup = BeautifulSoup(page.html)
+        [s.extract() for s in soup('script')]
+        [s.extract() for s in soup('style')]
+        [s.extract() for s in soup('img')]
+        return soup.text
+
+    @staticmethod
+    def _get_terms_from_page(page):
+        return DataAnalyzer._word_segment(DataAnalyzer._get_text_from_page(page))
+
+    @staticmethod
+    def _get_task_from_task_session(task_session):
+        task_id = task_session.task_url.split('/')[2]
+        task = get_task_by_id(task_id)
+        return task
 
     @staticmethod
     def check_connection():
@@ -207,7 +236,7 @@ class DataAnalyzer(object):
         out_df = df[df.in_domain == 0]
         info_idx = 5
         if 'query_idx' in df.columns:
-            info_idx = 6
+            info_idx = 8
         for x in df.columns[info_idx:]:
             F, p_anova = f_oneway(in_df[x], out_df[x])
             U, p_mann = mannwhitneyu(in_df[x], out_df[x])
@@ -306,6 +335,17 @@ class DataAnalyzer(object):
         print '\nquery variables:'
         for name, _ in self.query_extract_functions:
             print '\t'+name,
+
+    def get_answer_df(self):
+        columns = ['uid', 'task_id', 'task_domain', 'answer']
+        data = []
+        for idx, row, task_session in self.iter_task_sessions():
+            assert isinstance(task_session, TaskSession)
+            data.append([
+                row.uid, row.task_id, row.task_domain,
+                task_session.post_task_question_log.question_answer
+            ])
+        return pd.DataFrame(columns=columns, data=data)
 
 
 if __name__ == '__main__':
